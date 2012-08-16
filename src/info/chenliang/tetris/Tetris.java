@@ -26,7 +26,6 @@ public class Tetris extends Activity {
         
         tetrisView = new TetrisView(this, blockContainer, blockGenerator);
         setContentView(tetrisView);
-        
     }
 
     @Override

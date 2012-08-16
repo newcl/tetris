@@ -5,18 +5,22 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
+import android.view.View;
+import android.view.View.OnTouchListener;
 
-public class TetrisView extends SurfaceView implements Runnable, Callback{
+public class TetrisView extends SurfaceView implements Runnable, Callback, OnTouchListener{
 
 	private Paint paint = new Paint();
 	private Thread paintThread;
 	private SurfaceHolder surfaceHolder;
 	private BlockContainer blockContainer;
-	private int keyCode;
 	private BlockGenerator blockGenerator;
+	
+	private BlockControlAction currentAction;
 	
 	private int testBlockDownInterval;
 	private int testBlockDownTime;
@@ -38,6 +42,11 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		surfaceHolder = getHolder();
 		surfaceHolder.addCallback(this);
 		testBlockDownInterval = 800;
+		
+		currentAction = BlockControlAction.NONE;
+		
+		setClickable(true);
+		setOnTouchListener(this);
 	}
 	
 	private void initViewParams(){
@@ -53,12 +62,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		cellSize = Math.min(xSize, ySize);
 		xMargin = (screenWidth - cellSize*numCols) / 2;
 		yMargin = (screenHeight - cellSize*numRows) / 2;
-	}
-
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		this.keyCode = keyCode;
-		return translateKeyToAction(keyCode) != BlockControlAction.NONE;
 	}
 
 	private BlockControlAction translateKeyToAction(int keyCode){
@@ -79,63 +82,11 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		return action;
 	}
 
-	@Override
-	public boolean onKeyLongPress(int keyCode, KeyEvent event) {
-		// TODO Auto-generated method stub
-		return super.onKeyLongPress(keyCode, event);
-	}
-
-
-
-	@Override
-	public boolean onKeyMultiple(int keyCode, int repeatCount, KeyEvent event) {
-		// TODO Auto-generated method stub
-		return super.onKeyMultiple(keyCode, repeatCount, event);
-	}
-
-
-
-	@Override
-	public boolean onKeyPreIme(int keyCode, KeyEvent event) {
-		// TODO Auto-generated method stub
-		return super.onKeyPreIme(keyCode, event);
-	}
-
-
-
-	@Override
-	public boolean onKeyShortcut(int keyCode, KeyEvent event) {
-		// TODO Auto-generated method stub
-		return super.onKeyShortcut(keyCode, event);
-	}
-
-
-
-	@Override
-	public boolean onKeyUp(int keyCode, KeyEvent event) {
-		// TODO Auto-generated method stub
-		keyCode = -1;
-		return super.onKeyUp(keyCode, event);
-	}
-
-
-
-	@Override
-	protected void onDraw(Canvas canvas) {
-		// TODO Auto-generated method stub
-		super.onDraw(canvas);
-		
-		paint.setColor(0xff0000);
-		canvas.drawRect(0, 0, 100, 100, paint);
-	}
-
 	private void gameTick(int timeElapsed){
 		testBlockDownTime += timeElapsed;
 		
 		Block block = blockGenerator.getCurrentBlock();
-		
-		BlockControlAction action = translateKeyToAction(keyCode);
-		switch(action){
+		switch(currentAction){
 		case TRANSFORM:
 			if(blockContainer.canRotate(block)){
 				block.rotate();
@@ -150,9 +101,11 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			if(blockContainer.canMoveRight(block)){
 				block.translate(1, 0);
 			}
+			break;
 		case NONE:
 		case MOVE_DOWN:
-			boolean testDown = action == BlockControlAction.MOVE_DOWN || testBlockDownTime >= testBlockDownInterval;
+			/*
+			boolean testDown = currentAction == BlockControlAction.MOVE_DOWN || testBlockDownTime >= testBlockDownInterval;
 			if(testDown){
 				if(blockContainer.canMoveDown(block)){
 					block.translate(0, 1);
@@ -161,7 +114,18 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 					blockGenerator.nextRound();
 				}				
 			}
+			*/
 			break;
+		}
+		
+		boolean testDown = currentAction == BlockControlAction.MOVE_DOWN || testBlockDownTime >= testBlockDownInterval;
+		if(testDown){
+			if(blockContainer.canMoveDown(block)){
+				block.translate(0, 1);
+			}else{
+				blockContainer.fixBlock(block);
+				blockGenerator.nextRound();
+			}				
 		}
 		
 		if(testBlockDownTime >= testBlockDownInterval){
@@ -220,7 +184,13 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		Canvas canvas = null;
 		try {
 			canvas = surfaceHolder.lockCanvas();
-			
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();	
+		}
+		
+		if(canvas != null)
+		{
 			int screenWidth = getWidth();
 			int screenHeight = getHeight();
 			
@@ -248,13 +218,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			
 			Block block = blockGenerator.getCurrentBlock();
 			drawBlock(canvas, block);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();	
-		}
-		
-		if(canvas != null)
-		{
+			
 			try {
 				surfaceHolder.unlockCanvasAndPost(canvas);
 			} catch (Exception e) {
@@ -282,5 +246,45 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	@Override
+	public boolean onTouch(View v, MotionEvent event) {
+		// TODO Auto-generated method stub
+		if(v == this){
+			int action = event.getAction();
+			if(action == MotionEvent.ACTION_DOWN){
+
+				int x = (int)event.getX(0);
+				int y = (int)event.getY(0);
+				
+				int screenWidth = getWidth();
+				int screenHeight = getHeight();
+				
+				if(y < screenHeight / 2){
+					//instant down
+					currentAction = BlockControlAction.INSTANT_DOWN;
+				}else if(y < screenHeight * 3 / 4){
+					//transform
+					currentAction = BlockControlAction.TRANSFORM;
+				}else if(x < screenWidth / 3){
+					//left
+					currentAction = BlockControlAction.MOVE_LEFT;
+				}else if(x < screenWidth * 2 / 3){
+					//down
+					currentAction = BlockControlAction.MOVE_DOWN;
+				}else{
+					//right
+					currentAction = BlockControlAction.MOVE_RIGHT;
+				}
+			}else{
+				currentAction = BlockControlAction.NONE;
+			}
+			
+			
+			return true;
+		}
+		
+		return false;
 	}
 }

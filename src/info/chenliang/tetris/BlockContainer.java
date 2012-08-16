@@ -36,11 +36,11 @@ public class BlockContainer {
 			int containerX = x + cell.x;
 			int containerY = y + cell.y;
 			
-			if(containerY >= containerCells.length){
+			if(containerX < 0 || containerX >= numCols || containerY >= numRows){
 				return true;
 			}
 			
-			if(containerY >= 0 && containerY < containerCells.length && containerX >= 0 && containerX < containerCells[containerY].length){
+			if(containerY >= 0){
 				BlockContainerCell containerCell = containerCells[containerY][containerX];
 				if(containerCell.status == BlockContainerCellStatus.OCCUPIED){
 					return true;
@@ -61,11 +61,11 @@ public class BlockContainer {
 	}
 	
 	public boolean canMoveLeft(Block block){
-		return collideWithContainer(block.getX() - 1, block.getY(), block.getBlockCells());
+		return !collideWithContainer(block.getX() - 1, block.getY(), block.getBlockCells());
 	}
 
 	public boolean canMoveRight(Block block){
-		return collideWithContainer(block.getX() + 1, block.getY(), block.getBlockCells());
+		return !collideWithContainer(block.getX() + 1, block.getY(), block.getBlockCells());
 	}
 	
 	public boolean canMoveDown(Block block){
