@@ -25,8 +25,8 @@ public class BlockContainer {
 	}
 	
 	public boolean canRotate(Block block){
-		BlockCell[] cells = rotateBlockCells(block.getBlockCells());
-		return collideWithContainer(block.getX(), block.getY(), cells);
+		BlockCell[] cells = block.tryRotate();
+		return !collideWithContainer(block.getX(), block.getY(), cells);
 	}
 	
 	private boolean collideWithContainer(int x, int y, BlockCell[] cells){
@@ -48,16 +48,6 @@ public class BlockContainer {
 			}
 		}
 		return false;
-	}
-	
-	private BlockCell[] rotateBlockCells(BlockCell[] cells){
-		BlockCell[] result = new BlockCell[cells.length];
-		for(int i=0;i < cells.length; i++){
-			BlockCell cell = cells[i];
-			result[i].x = cell.x;
-			result[i].y = cell.y;
-		}
-		return result;
 	}
 	
 	public boolean canMoveLeft(Block block){

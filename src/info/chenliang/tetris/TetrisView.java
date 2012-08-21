@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.Rect;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -30,6 +31,12 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 	private int xMargin = 30;
 	private int yMargin = 30;
 	private int cellSize;
+	
+	private Rect leftButton;
+	private Rect rightButton;
+	private Rect downButton;
+	private Rect rotateButton;
+	private Rect instantDownButton;
 	
 	public TetrisView(Context context, BlockContainer blockContainer, BlockGenerator blockGenerator) {
 		super(context);
@@ -62,6 +69,14 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 		cellSize = Math.min(xSize, ySize);
 		xMargin = (screenWidth - cellSize*numCols) / 2;
 		yMargin = (screenHeight - cellSize*numRows) / 2;
+		
+		int buttonSize = screenWidth / 3;
+		
+		leftButton = new Rect(0, screenHeight - buttonSize, buttonSize, screenHeight);
+		rightButton = new Rect(screenWidth - buttonSize, screenHeight - buttonSize, screenWidth, screenHeight);
+		downButton = new Rect(buttonSize*2, screenHeight - buttonSize, screenWidth - buttonSize, screenHeight);
+		rotateButton = new Rect(buttonSize, screenHeight - buttonSize*2, screenWidth - buttonSize, screenHeight-buttonSize);
+		instantDownButton = new Rect(0, screenHeight - buttonSize*2, buttonSize, screenHeight-buttonSize);
 	}
 
 	private BlockControlAction translateKeyToAction(int keyCode){
@@ -219,6 +234,14 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 			Block block = blockGenerator.getCurrentBlock();
 			drawBlock(canvas, block);
 			
+			
+			//draw control keys
+			drawButton(canvas, leftButton, 0x8f00ff00);
+			drawButton(canvas, rightButton, 0xff00ff00);
+			drawButton(canvas, downButton, 0x8f000000);
+			drawButton(canvas, rotateButton, 0x8fffffff);
+			drawButton(canvas, instantDownButton, 0x8fff0000);
+			
 			try {
 				surfaceHolder.unlockCanvasAndPost(canvas);
 			} catch (Exception e) {
@@ -226,6 +249,16 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	private void drawButton(Canvas canvas, Rect rect, int color){
+		paint.setStyle(Style.FILL);
+		paint.setColor(color);
+		canvas.drawRect(rect, paint);
+		
+		paint.setStyle(Style.STROKE);
+		paint.setColor(0xffffffff);
+		canvas.drawRect(rect, paint);
 	}
 	
 	@Override
@@ -258,6 +291,19 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 				int x = (int)event.getX(0);
 				int y = (int)event.getY(0);
 				
+				if(leftButton.contains(x,y)){
+					currentAction = BlockControlAction.MOVE_LEFT;
+				}else if(rightButton.contains(x,y)){
+					currentAction = BlockControlAction.MOVE_RIGHT;
+				}else if(downButton.contains(x,y)){
+					currentAction = BlockControlAction.INSTANT_DOWN;
+				}else if(rotateButton.contains(x,y)){
+					currentAction = BlockControlAction.TRANSFORM;
+				}else if(instantDownButton.contains(x,y)){
+					currentAction = BlockControlAction.INSTANT_DOWN;
+				}
+				
+				/*
 				int screenWidth = getWidth();
 				int screenHeight = getHeight();
 				
@@ -276,12 +322,11 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 				}else{
 					//right
 					currentAction = BlockControlAction.MOVE_RIGHT;
-				}
+				}*/
 			}else{
 				currentAction = BlockControlAction.NONE;
 			}
-			
-			
+
 			return true;
 		}
 		
