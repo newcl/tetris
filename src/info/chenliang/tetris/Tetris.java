@@ -25,7 +25,7 @@ public class Tetris extends Activity {
         blockGenerator = new BlockGenerator();
         
         tetrisView = new TetrisView(this, blockContainer, blockGenerator);
-        setContentView(tetrisView);
+        setContentView(R.layout.activity_main);
     }
 
     @Override

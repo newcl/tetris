@@ -13,6 +13,12 @@ public class BlockController {
 			break;
 		case MOVE_RIGHT:
 			break;
+		case INSTANT_DOWN:
+			break;
+		case NONE:
+			break;
+		default:
+			break;
 		}
 		
 		return true;

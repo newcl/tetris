@@ -77,9 +77,10 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 		downButton = new Rect(buttonSize*2, screenHeight - buttonSize, screenWidth - buttonSize, screenHeight);
 		rotateButton = new Rect(buttonSize, screenHeight - buttonSize*2, screenWidth - buttonSize, screenHeight-buttonSize);
 		instantDownButton = new Rect(0, screenHeight - buttonSize*2, buttonSize, screenHeight-buttonSize);
+		
 	}
 
-	private BlockControlAction translateKeyToAction(int keyCode){
+	public BlockControlAction translateKeyToAction(int keyCode){
 		BlockControlAction action = BlockControlAction.NONE;
 		
 		if(keyCode == KeyEvent.KEYCODE_DPAD_UP){
@@ -131,6 +132,10 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 			}
 			*/
 			break;
+		case INSTANT_DOWN:
+			break;
+		default:
+			break;
 		}
 		
 		boolean testDown = currentAction == BlockControlAction.MOVE_DOWN || testBlockDownTime >= testBlockDownInterval;
@@ -149,7 +154,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 		}
 	}
 	
-	@Override
 	public void run() {
 		// TODO Auto-generated method stub
 		lastTickTime = System.currentTimeMillis();
@@ -159,7 +163,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 			int timeElapsed = (int)(currentTime - lastTickTime);
 			
 			gameTick(timeElapsed);
-			gameDraw();
+			//gameDraw();
 			
 			lastTickTime = currentTime;
 			try {
@@ -261,27 +265,23 @@ public class TetrisView extends SurfaceView implements Runnable, Callback, OnTou
 		canvas.drawRect(rect, paint);
 	}
 	
-	@Override
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
 		// TODO Auto-generated method stub
 		//throw new RuntimeException("wtf~~~");
 	}
 
-	@Override
 	public void surfaceCreated(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
 		initViewParams();
 		paintThread.start();
 	}
 
-	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
 		// TODO Auto-generated method stub
 		
 	}
 	
-	@Override
 	public boolean onTouch(View v, MotionEvent event) {
 		// TODO Auto-generated method stub
 		if(v == this){
