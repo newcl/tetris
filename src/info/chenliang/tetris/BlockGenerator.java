@@ -1,12 +1,31 @@
 package info.chenliang.tetris;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BlockGenerator {
 	private Block currentBlock;
 	private Block nextBlock;
 
+	private List<Block> blocks;
+	
 	public BlockGenerator(){
+		blocks = new ArrayList<Block>();
+		registerBlocks();
+		
 		currentBlock = generateBlock();
 		nextBlock = generateBlock();
+	}
+	
+	private void registerBlocks(){
+		int[][][] blockType1 = {
+									{
+										{},
+										{},
+										{},
+										{}
+									},
+							   };
 	}
 	
 	public Block getCurrentBlock() {

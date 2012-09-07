@@ -27,6 +27,15 @@ public class Block {
 		this.color = color;
 	}
 	
+	public Block(int[] cells, int x, int y, int color){
+		
+		
+		
+		this.x = x;
+		this.y = y;
+		this.color = color;
+	}
+	
 	private void rotateBlockPosition(BlockCell cell){
 		int x = cell.x;
 		int y = cell.y;
