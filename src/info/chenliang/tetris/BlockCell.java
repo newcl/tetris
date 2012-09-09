@@ -9,4 +9,9 @@ public class BlockCell {
 		this.x = x;
 		this.y = y;
 	}
+	
+	public BlockCell(BlockCell cell)
+	{
+		this(cell.x, cell.y);
+	}
 }

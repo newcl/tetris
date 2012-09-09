@@ -11,5 +11,9 @@ class BlockContainerCell{
 		this.status = status;
 	}
 	
-	
+	public void copy(BlockContainerCell cell)
+	{
+		color = cell.color;
+		status = cell.status;
+	}
 }

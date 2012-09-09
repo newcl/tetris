@@ -1,5 +1,6 @@
 package info.chenliang.tetris;
 
+
 public class Block {
 	//				|
 	//				|
@@ -16,24 +17,21 @@ public class Block {
 	//				|
 	//				| +
 	
-	private BlockCell[] cells;
+	private BlockPrototype protoType;
 	private int x,y;
 	private int color;
-	
-	public Block(BlockCell[] cells, int x, int y, int color){
-		this.cells = cells;
+	BlockCell[] cells;
+	public Block(BlockPrototype protoType, int x, int y, int color){
+		this.protoType = protoType;
 		this.x = x;
 		this.y = y;
 		this.color = color;
-	}
-	
-	public Block(int[] cells, int x, int y, int color){
 		
-		
-		
-		this.x = x;
-		this.y = y;
-		this.color = color;
+		cells = new BlockCell[protoType.getBlockCells().size()];
+		for(int i=0;i < cells.length; i++)
+		{
+			cells[i] = new BlockCell(protoType.getBlockCells().get(i));
+		}
 	}
 	
 	private void rotateBlockPosition(BlockCell cell){

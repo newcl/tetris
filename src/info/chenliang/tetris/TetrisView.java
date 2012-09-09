@@ -20,7 +20,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	
 	private BlockControlAction currentAction;
 	
-	private final static int REFRESH_INVERVAL = 50;
+	private final static int REFRESH_INVERVAL = 30;
 	
 	public BlockControlAction getCurrentAction() {
 		return currentAction;
@@ -39,6 +39,14 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	private int yMargin = 30;
 	private int cellSize;
 	
+	private Block currentBlock;
+	private Block nextBlock;
+	
+	private int inputCheckInterval = 60;
+	private long lastActionTime;
+	
+	private int fullRowBlinkCount;
+	
 	public TetrisView(Context context, BlockContainer blockContainer, BlockGenerator blockGenerator) {
 		super(context);
 		setKeepScreenOn(true);
@@ -49,7 +57,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		paintThread = new Thread(this);
 		surfaceHolder = getHolder();
 		surfaceHolder.addCallback(this);
-		testBlockDownInterval = 800;
+		testBlockDownInterval = 1000;
 		
 		currentAction = BlockControlAction.NONE;
 	}
@@ -87,54 +95,69 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		return action;
 	}
 
+	private boolean shouldCheckInputAction()
+	{
+		return System.currentTimeMillis() - lastActionTime >= inputCheckInterval;
+	}
+	
 	private void gameTick(int timeElapsed){
 		testBlockDownTime += timeElapsed;
 		
-		Block block = blockGenerator.getCurrentBlock();
-		switch(currentAction){
-		case TRANSFORM:
-			if(blockContainer.canRotate(block)){
-				block.rotate();
+		boolean inputDown = false;
+		if(shouldCheckInputAction())
+		{
+			switch(currentAction){
+			case TRANSFORM:
+				if(blockContainer.canRotate(currentBlock)){
+					currentBlock.rotate();
+				}
+				break;
+			case MOVE_LEFT:
+				if(blockContainer.canMoveLeft(currentBlock)){
+					currentBlock.translate(-1, 0);
+				}
+				break;
+			case MOVE_RIGHT:
+				if(blockContainer.canMoveRight(currentBlock)){
+					currentBlock.translate(1, 0);
+				}
+				break;
+			case NONE:
+				break;
+			case MOVE_DOWN:
+				inputDown = true;
+				break;
+			case INSTANT_DOWN:
+				break;
+			default:
+				break;
+			}	
+			
+			if(currentAction != BlockControlAction.NONE)
+			{
+				lastActionTime = System.currentTimeMillis();
 			}
-			break;
-		case MOVE_LEFT:
-			if(blockContainer.canMoveLeft(block)){
-				block.translate(-1, 0);
-			}
-			break;
-		case MOVE_RIGHT:
-			if(blockContainer.canMoveRight(block)){
-				block.translate(1, 0);
-			}
-			break;
-		case NONE:
-		case MOVE_DOWN:
-			/*
-			boolean testDown = currentAction == BlockControlAction.MOVE_DOWN || testBlockDownTime >= testBlockDownInterval;
-			if(testDown){
-				if(blockContainer.canMoveDown(block)){
-					block.translate(0, 1);
-				}else{
-					blockContainer.fixBlock(block);
-					blockGenerator.nextRound();
-				}				
-			}
-			*/
-			break;
-		case INSTANT_DOWN:
-			break;
-		default:
-			break;
 		}
 		
-		boolean testDown = currentAction == BlockControlAction.MOVE_DOWN || testBlockDownTime >= testBlockDownInterval;
+		
+		boolean testDown = inputDown || testBlockDownTime >= testBlockDownInterval;
 		if(testDown){
-			if(blockContainer.canMoveDown(block)){
-				block.translate(0, 1);
+			if(blockContainer.canMoveDown(currentBlock)){
+				currentBlock.translate(0, 1);
 			}else{
-				blockContainer.fixBlock(block);
-				blockGenerator.nextRound();
+				blockContainer.fixBlock(currentBlock);
+				currentBlock = nextBlock;
+				nextBlock = generateNextBlock();
+				currentAction = BlockControlAction.NONE;
+				testBlockDownTime = 0;
 			}				
+		}
+		
+		if(fullRowBlinkCount >= 3)
+		{
+			blockContainer.removeFullRows();
+			
+			fullRowBlinkCount = 0;
 		}
 		
 		if(testBlockDownTime >= testBlockDownInterval){
@@ -143,9 +166,52 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		}
 	}
 	
+	private Block generateNextBlock()
+	{
+//		int red = 100 + (int)(Math.random()*156);
+//		int green = 100 + (int)(Math.random()*156);
+//		int blue = 100 + (int)(Math.random()*156);
+		
+		int red = (int)(Math.random()*256);
+		int green = (int)(Math.random()*256);
+		int blue = (int)(Math.random()*256);
+		
+		/*
+		int choice = (int)Math.random()*3;
+		if(choice == 0)
+		{
+			red = (int)(Math.random()*256);
+		}
+		else if(choice == 1)
+		{
+			green = (int)(Math.random()*256);
+		}
+		else if(choice == 2)
+		{
+			blue = (int)(Math.random()*256);
+		}
+		*/
+		Block block = new Block(blockGenerator.getRandomBlockPrototype(), 4, 4, 0xff000000|(red<<16)|(green<<8)|blue);
+		
+		if(!blockContainer.canMoveDown(block))
+		{
+			blockContainer.reset();
+		}
+		
+		return block;
+	}
+	
+	private void gameInit()
+	{
+		currentBlock = generateNextBlock();
+		nextBlock = generateNextBlock();
+	}
+	
 	public void run() {
 		// TODO Auto-generated method stub
 		lastTickTime = System.currentTimeMillis();
+		
+		gameInit();
 		while(true)
 		{
 			long currentTime = System.currentTimeMillis();
@@ -213,19 +279,28 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			paint.setColor(0xffffffff);
 			canvas.drawRect(xMargin, yMargin, xMargin + containerWidth-1, yMargin + containerHeight-1, paint);
 			
-			BlockContainerCell[][] containerCells = blockContainer.getContainerCells();
-			
 			for(int row=0; row < blockContainer.getNumRows(); row++){
-				for(int col=0; col < blockContainer.getNumCols(); col++){
-					BlockContainerCell cell = containerCells[row][col];
-					if(cell.status == BlockContainerCellStatus.OCCUPIED){
-						drawBlockCell(canvas, col, row, cell.color);
-					}
+				BlockContainerRow containerRow = blockContainer.getRow(row);
+				boolean drawRow = true;
+				if(containerRow.isFull())
+				{
+					drawRow = System.currentTimeMillis() % 300 / 150 == 1;
+					fullRowBlinkCount ++;
 				}
+				if(drawRow)
+				{
+					for(int col=0; col < blockContainer.getNumCols(); col++){
+						BlockContainerCell cell = containerRow.getColumn(col);
+						if(cell.status == BlockContainerCellStatus.OCCUPIED){
+							drawBlockCell(canvas, col, row, cell.color);
+						}
+					}	
+				}
+				
 			}
 			
-			Block block = blockGenerator.getCurrentBlock();
-			drawBlock(canvas, block);
+			
+			drawBlock(canvas, currentBlock);
 			
 			try {
 				surfaceHolder.unlockCanvasAndPost(canvas);
