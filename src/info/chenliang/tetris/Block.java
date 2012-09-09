@@ -21,6 +21,7 @@ public class Block {
 	private int x,y;
 	private int color;
 	BlockCell[] cells;
+	
 	public Block(BlockPrototype protoType, int x, int y, int color){
 		this.protoType = protoType;
 		this.x = x;
@@ -32,6 +33,20 @@ public class Block {
 		{
 			cells[i] = new BlockCell(protoType.getBlockCells().get(i));
 		}
+	}
+	
+	public Block(Block block)
+	{
+		this.protoType = block.protoType;
+		this.x = block.x;
+		this.y = block.y;
+		this.color = block.color;
+		
+		cells = new BlockCell[block.protoType.getBlockCells().size()];
+		for(int i=0;i < cells.length; i++)
+		{
+			cells[i] = new BlockCell(block.cells[i]);
+		}	
 	}
 	
 	private void rotateBlockPosition(BlockCell cell){
@@ -134,4 +149,9 @@ public class Block {
 	public void setColor(int color) {
 		this.color = color;
 	}
+
+	public BlockPrototype getProtoType() {
+		return protoType;
+	}
+	
 }

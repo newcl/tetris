@@ -42,10 +42,11 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	private Block currentBlock;
 	private Block nextBlock;
 	
-	private int inputCheckInterval = 60;
+	private int inputCheckInterval = 150;
 	private long lastActionTime;
 	
 	private int fullRowBlinkCount;
+	private Block shadowBlock;
 	
 	public TetrisView(Context context, BlockContainer blockContainer, BlockGenerator blockGenerator) {
 		super(context);
@@ -104,6 +105,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		testBlockDownTime += timeElapsed;
 		
 		boolean inputDown = false;
+		
 		if(shouldCheckInputAction())
 		{
 			switch(currentAction){
@@ -128,6 +130,12 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 				inputDown = true;
 				break;
 			case INSTANT_DOWN:
+				while(blockContainer.canMoveDown(currentBlock))
+				{
+					currentBlock.translate(0, 1);
+				}
+				
+				fixCurrentBlock();
 				break;
 			default:
 				break;
@@ -140,16 +148,12 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		}
 		
 		
-		boolean testDown = inputDown || testBlockDownTime >= testBlockDownInterval;
+		boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
 		if(testDown){
 			if(blockContainer.canMoveDown(currentBlock)){
 				currentBlock.translate(0, 1);
 			}else{
-				blockContainer.fixBlock(currentBlock);
-				currentBlock = nextBlock;
-				nextBlock = generateNextBlock();
-				currentAction = BlockControlAction.NONE;
-				testBlockDownTime = 0;
+				fixCurrentBlock();
 			}				
 		}
 		
@@ -161,9 +165,27 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		}
 		
 		if(testBlockDownTime >= testBlockDownInterval){
-			//testBlockDownTime -= testBlockDownInterval;
-			testBlockDownTime = 0;
+			testBlockDownTime -= testBlockDownInterval;
 		}
+		
+		updateShaowBlock();
+		
+		while(blockContainer.canMoveDown(shadowBlock))
+		{
+			shadowBlock.translate(0, 1);
+		}
+		
+	}
+	
+	private void fixCurrentBlock()
+	{
+		blockContainer.fixBlock(currentBlock);
+		currentBlock = nextBlock;
+		nextBlock = generateNextBlock();
+		currentAction = BlockControlAction.NONE;
+		testBlockDownTime = 0;
+		
+		updateShaowBlock();
 	}
 	
 	private Block generateNextBlock()
@@ -205,6 +227,13 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	{
 		currentBlock = generateNextBlock();
 		nextBlock = generateNextBlock();
+		updateShaowBlock();
+	}
+	
+	private void updateShaowBlock()
+	{
+		shadowBlock = new Block(currentBlock);
+		shadowBlock.setColor(0);
 	}
 	
 	public void run() {
@@ -284,7 +313,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 				boolean drawRow = true;
 				if(containerRow.isFull())
 				{
-					drawRow = System.currentTimeMillis() % 300 / 150 == 1;
+					drawRow = System.currentTimeMillis() % 700 / 350 == 1;
 					fullRowBlinkCount ++;
 				}
 				if(drawRow)
@@ -301,6 +330,8 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			
 			
 			drawBlock(canvas, currentBlock);
+			
+			drawBlock(canvas, shadowBlock);
 			
 			try {
 				surfaceHolder.unlockCanvasAndPost(canvas);

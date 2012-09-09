@@ -63,6 +63,14 @@ public class BlockGenerator {
 		protoType.getBlockCells().add(new BlockCell(-2,-1));
 		
 		blockPrototypes.add(protoType);
+		
+		protoType = new BlockPrototype("|+|");
+		protoType.getBlockCells().add(new BlockCell(-1,-1));
+		protoType.getBlockCells().add(new BlockCell(0,-1));
+		protoType.getBlockCells().add(new BlockCell(-1,0));
+		protoType.getBlockCells().add(new BlockCell(0,0));
+		
+		blockPrototypes.add(protoType);
 	}
 	
 	public BlockPrototype getRandomBlockPrototype(){
