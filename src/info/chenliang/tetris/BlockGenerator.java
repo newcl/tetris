@@ -17,64 +17,63 @@ public class BlockGenerator {
 		
 		protoType = new BlockPrototype("_|_");
 		protoType.getBlockCells().add(new BlockCell(-1,-1));
-		protoType.getBlockCells().add(new BlockCell(0,-1));
+		protoType.getBlockCells().add(new BlockCell(-1,-3));
+		protoType.getBlockCells().add(new BlockCell(-3,-1));
 		protoType.getBlockCells().add(new BlockCell(1,-1));
-		protoType.getBlockCells().add(new BlockCell(0,-2));
 		
 		blockPrototypes.add(protoType);
 		
-		protoType = new BlockPrototype("----------------" +
-									   "|_______________|");
-		protoType.getBlockCells().add(new BlockCell(-1,-1));
-		protoType.getBlockCells().add(new BlockCell(-2,-1));
-		protoType.getBlockCells().add(new BlockCell(0,-1));
-		protoType.getBlockCells().add(new BlockCell(1,-1));
+		protoType = new BlockPrototype("|_____|");
+		protoType.getBlockCells().add(new BlockCell(0,-4));
+		protoType.getBlockCells().add(new BlockCell(0,-2));
+		protoType.getBlockCells().add(new BlockCell(0,0));
+		protoType.getBlockCells().add(new BlockCell(0,2));
 		
 		blockPrototypes.add(protoType);
 		
 		protoType = new BlockPrototype("__|--");
 		protoType.getBlockCells().add(new BlockCell(-1,-1));
-		protoType.getBlockCells().add(new BlockCell(0,-1));
-		protoType.getBlockCells().add(new BlockCell(-1,0));
-		protoType.getBlockCells().add(new BlockCell(-2,0));
+		protoType.getBlockCells().add(new BlockCell(-1,-3));
+		protoType.getBlockCells().add(new BlockCell(1,-3));
+		protoType.getBlockCells().add(new BlockCell(-3,-1));
 		
 		blockPrototypes.add(protoType);
 		
 		protoType = new BlockPrototype("--|__");
 		protoType.getBlockCells().add(new BlockCell(-1,-1));
-		protoType.getBlockCells().add(new BlockCell(0,-1));
-		protoType.getBlockCells().add(new BlockCell(0,0));
-		protoType.getBlockCells().add(new BlockCell(1,0));
-		
-		blockPrototypes.add(protoType);
-		
-		protoType = new BlockPrototype("|__");
-		protoType.getBlockCells().add(new BlockCell(0,-1));
-		protoType.getBlockCells().add(new BlockCell(0,-2));
-		protoType.getBlockCells().add(new BlockCell(0,-3));
-		protoType.getBlockCells().add(new BlockCell(-1,-1));
+		protoType.getBlockCells().add(new BlockCell(-1,-3));
+		protoType.getBlockCells().add(new BlockCell(-3,-3));
+		protoType.getBlockCells().add(new BlockCell(1,-1));
 		
 		blockPrototypes.add(protoType);
 		
 		protoType = new BlockPrototype("__|");
-		protoType.getBlockCells().add(new BlockCell(-1,-1));
-		protoType.getBlockCells().add(new BlockCell(-1,-2));
 		protoType.getBlockCells().add(new BlockCell(-1,-3));
-		protoType.getBlockCells().add(new BlockCell(-2,-1));
+		protoType.getBlockCells().add(new BlockCell(-1,-1));
+		protoType.getBlockCells().add(new BlockCell(-1,1));
+		protoType.getBlockCells().add(new BlockCell(-3,-1));
 		
 		blockPrototypes.add(protoType);
 		
-		protoType = new BlockPrototype("|+|");
+		protoType = new BlockPrototype("|__");
 		protoType.getBlockCells().add(new BlockCell(-1,-1));
-		protoType.getBlockCells().add(new BlockCell(0,-1));
-		protoType.getBlockCells().add(new BlockCell(-1,0));
+		protoType.getBlockCells().add(new BlockCell(-1,-3));
+		protoType.getBlockCells().add(new BlockCell(-1,1));
+		protoType.getBlockCells().add(new BlockCell(1,1));
+		blockPrototypes.add(protoType);
+		
+		protoType = new BlockPrototype("|+|");
+		protoType.getBlockCells().add(new BlockCell(-2,-2));
+		protoType.getBlockCells().add(new BlockCell(0,-2));
 		protoType.getBlockCells().add(new BlockCell(0,0));
+		protoType.getBlockCells().add(new BlockCell(-2,0));
 		
 		blockPrototypes.add(protoType);
 	}
 	
 	public BlockPrototype getRandomBlockPrototype(){
 		int blockType = (int)(Math.random()*blockPrototypes.size());
+		//blockType = 5;
 		return blockPrototypes.get(blockType);
 	}
 	

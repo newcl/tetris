@@ -20,8 +20,11 @@ public class Block {
 	private BlockPrototype protoType;
 	private int x,y;
 	private int color;
-	BlockCell[] cells;
+	private BlockCell[] cells;
 	
+	private int minX, maxX, minY, maxY;
+	private boolean oddX;
+	private boolean oddY;
 	public Block(BlockPrototype protoType, int x, int y, int color){
 		this.protoType = protoType;
 		this.x = x;
@@ -32,6 +35,67 @@ public class Block {
 		for(int i=0;i < cells.length; i++)
 		{
 			cells[i] = new BlockCell(protoType.getBlockCells().get(i));
+			
+			//cells[i].x *= 2;
+			//cells[i].y *= 2;
+		}
+		
+		updateBounds();
+		/*
+		int centerX = minX + (maxX - minX) / 2;
+		int centerY = minY + (maxY - minY) / 2;
+		for(int i=0;i < cells.length; i++)
+		{
+			cells[i].x -= centerX;
+			cells[i].y -= centerY;
+			
+			if(cells[i].x % 2 != 0)
+			{
+				oddX = true;
+			}
+			
+			if(cells[i].y % 2 != 0)
+			{
+				oddY = true;
+			}
+		}
+		*/
+		
+		for(int i=0;i < cells.length; i++)
+		{
+			if(cells[i].x % 2 != 0)
+			{
+				oddX = true;
+			}
+			
+			if(cells[i].y % 2 != 0)
+			{
+				oddY = true;
+			}
+		}
+		
+		if(!((oddX && oddY) || ((!oddX)&&(!oddY))))
+		{
+			throw new RuntimeException("shit");
+		}
+//		minX -= centerX;
+//		maxX -= centerX;
+//		minY -= centerY;
+//		maxY -= centerY;
+	}
+	
+	private void updateBounds()
+	{
+		minX = cells[0].x;
+		maxX = cells[0].x;
+		minY = cells[0].y;
+		maxY = cells[0].y;
+		for(int i=1; i < cells.length; i++)
+		{
+			minX = Math.min(minX, cells[i].x);
+			maxX = Math.max(maxX, cells[i].x + 2);
+			minY = Math.min(minY, cells[i].y);
+			maxY = Math.max(maxY, cells[i].y + 2);
 		}
 	}
 	
@@ -60,9 +124,9 @@ public class Block {
 	private void rotateBlockCell(BlockCell cell){
 		BlockCell[] bounds = new BlockCell[4];
 		bounds[0] = new BlockCell(cell.x, cell.y);
-		bounds[1] = new BlockCell(cell.x + 1, cell.y);
-		bounds[2] = new BlockCell(cell.x + 1, cell.y + 1);
-		bounds[3] = new BlockCell(cell.x, cell.y + 1);
+		bounds[1] = new BlockCell(cell.x + 2, cell.y);
+		bounds[2] = new BlockCell(cell.x + 2, cell.y + 2);
+		bounds[3] = new BlockCell(cell.x, cell.y + 2);
 		
 		for(int j=0;j < bounds.length; j++){
 			BlockCell boundCell = bounds[j];
@@ -70,9 +134,9 @@ public class Block {
 		}
 		
 		int cellX = bounds[0].x;
-		int cellY = bounds[1].y;
+		int cellY = bounds[0].y;
 		
-		for(int j=0;j < bounds.length; j++){
+		for(int j=1;j < bounds.length; j++){
 			BlockCell boundCell = bounds[j];
 			cellX = Math.min(cellX, boundCell.x);
 			cellY = Math.min(cellY, boundCell.y);
@@ -95,6 +159,7 @@ public class Block {
 			rotateBlockCell(cell);
 		}
 		
+		updateBounds();
 	}
 	
 	public BlockCell[] tryRotate(){
@@ -114,12 +179,6 @@ public class Block {
 		x += deltaX;
 		y += deltaY;
 	}
-	
-	
-	public BlockCell[] getBlockCells() {
-		return cells;
-	}
-
 
 	public int getX() {
 		return x;
@@ -152,6 +211,34 @@ public class Block {
 
 	public BlockPrototype getProtoType() {
 		return protoType;
+	}
+
+	public int getMinX() {
+		return minX;
+	}
+
+	public int getMaxX() {
+		return maxX;
+	}
+
+	public int getMinY() {
+		return minY;
+	}
+
+	public int getMaxY() {
+		return maxY;
+	}
+
+	public boolean isOddX() {
+		return oddX;
+	}
+
+	public boolean isOddY() {
+		return oddY;
+	}
+
+	public BlockCell[] getCells() {
+		return cells;
 	}
 	
 }

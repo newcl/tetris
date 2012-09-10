@@ -27,12 +27,17 @@ public class BlockContainer {
 		return !collideWithContainer(block.getX(), block.getY(), cells);
 	}
 	
-	private boolean collideWithContainer(int x, int y, BlockCell[] cells){
+	public boolean collideWithContainer(Block block)
+	{
+		return collideWithContainer(block.getX(), block.getY(), block.getCells());
+	}
+	
+	public boolean collideWithContainer(int x, int y, BlockCell[] cells){
 		for(int i=0; i<cells.length;i ++){
 			BlockCell cell = cells[i];
 			
-			int containerX = x + cell.x;
-			int containerY = y + cell.y;
+			int containerX = (x + cell.x) / 2;
+			int containerY = (y + cell.y) / 2;
 			
 			if(containerX < 0 || containerX >= numCols || containerY >= numRows)
 			{
@@ -54,23 +59,23 @@ public class BlockContainer {
 	}
 	
 	public boolean canMoveLeft(Block block){
-		return !collideWithContainer(block.getX() - 1, block.getY(), block.getBlockCells());
+		return !collideWithContainer(block.getX() - 2, block.getY(), block.getCells());
 	}
 
 	public boolean canMoveRight(Block block){
-		return !collideWithContainer(block.getX() + 1, block.getY(), block.getBlockCells());
+		return !collideWithContainer(block.getX() + 2, block.getY(), block.getCells());
 	}
 	
 	public boolean canMoveDown(Block block){
-		return !collideWithContainer(block.getX(), block.getY() + 1, block.getBlockCells());
+		return !collideWithContainer(block.getX(), block.getY() + 2, block.getCells());
 	}
 	
 	public void fixBlock(Block block){
-		BlockCell[] cells = block.getBlockCells();
+		BlockCell[] cells = block.getCells();
 		for(int i=0; i<cells.length; i++){
 			BlockCell cell = cells[i];
-			int containerX = block.getX() + cell.x;
-			int containerY = block.getY() + cell.y;
+			int containerX = (block.getX() + cell.x) / 2;
+			int containerY = (block.getY() + cell.y) / 2;
 			
 			if(containerY >= 0 && containerY < numRows){
 				BlockContainerRow containerRow = containerRows[containerY];
