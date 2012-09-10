@@ -46,7 +46,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	private Block currentBlock;
 	private Block nextBlock;
 	
-	private int inputCheckInterval = 150;
+	private int inputCheckInterval = 120;
 	private long lastActionTime;
 	
 	private int fullRowBlinkCount;
@@ -204,30 +204,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	
 	private Block generateNextBlock()
 	{
-//		int red = 100 + (int)(Math.random()*156);
-//		int green = 100 + (int)(Math.random()*156);
-//		int blue = 100 + (int)(Math.random()*156);
-		
-		int red = (int)(Math.random()*256);
-		int green = (int)(Math.random()*256);
-		int blue = (int)(Math.random()*256);
-		
-		/*
-		int choice = (int)Math.random()*3;
-		if(choice == 0)
-		{
-			red = (int)(Math.random()*256);
-		}
-		else if(choice == 1)
-		{
-			green = (int)(Math.random()*256);
-		}
-		else if(choice == 2)
-		{
-			blue = (int)(Math.random()*256);
-		}
-		*/
-		Block block = new Block(blockGenerator.getRandomBlockPrototype(), 4, 4, 0xff000000|(red<<16)|(green<<8)|blue);
+		Block block = new Block(blockGenerator.getRandomBlockPrototype(), 4, 4);
 		
 		if(!blockContainer.canMoveDown(block))
 		{
@@ -403,8 +380,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
 			int height) {
-		// TODO Auto-generated method stub
-		//throw new RuntimeException("wtf~~~");
 	}
 
 	public void surfaceCreated(SurfaceHolder holder) {
@@ -414,7 +389,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	}
 
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
 		
 	}
 	

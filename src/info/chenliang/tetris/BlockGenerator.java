@@ -15,7 +15,7 @@ public class BlockGenerator {
 	private void registerBlockPrototypes(){
 		BlockPrototype protoType = null;
 		
-		protoType = new BlockPrototype("_|_");
+		protoType = new BlockPrototype("_|_", 255, 0, 0);
 		protoType.getBlockCells().add(new BlockCell(-1,-1));
 		protoType.getBlockCells().add(new BlockCell(-1,-3));
 		protoType.getBlockCells().add(new BlockCell(-3,-1));
@@ -23,7 +23,7 @@ public class BlockGenerator {
 		
 		blockPrototypes.add(protoType);
 		
-		protoType = new BlockPrototype("|_____|");
+		protoType = new BlockPrototype("|_____|", 255, 125, 0);
 		protoType.getBlockCells().add(new BlockCell(0,-4));
 		protoType.getBlockCells().add(new BlockCell(0,-2));
 		protoType.getBlockCells().add(new BlockCell(0,0));
@@ -31,7 +31,7 @@ public class BlockGenerator {
 		
 		blockPrototypes.add(protoType);
 		
-		protoType = new BlockPrototype("__|--");
+		protoType = new BlockPrototype("__|--", 0, 255, 0);
 		protoType.getBlockCells().add(new BlockCell(-1,-1));
 		protoType.getBlockCells().add(new BlockCell(-1,-3));
 		protoType.getBlockCells().add(new BlockCell(1,-3));
@@ -39,7 +39,7 @@ public class BlockGenerator {
 		
 		blockPrototypes.add(protoType);
 		
-		protoType = new BlockPrototype("--|__");
+		protoType = new BlockPrototype("--|__", 255 ,255 ,0);
 		protoType.getBlockCells().add(new BlockCell(-1,-1));
 		protoType.getBlockCells().add(new BlockCell(-1,-3));
 		protoType.getBlockCells().add(new BlockCell(-3,-3));
@@ -47,7 +47,7 @@ public class BlockGenerator {
 		
 		blockPrototypes.add(protoType);
 		
-		protoType = new BlockPrototype("__|");
+		protoType = new BlockPrototype("__|", 0, 255, 255);
 		protoType.getBlockCells().add(new BlockCell(-1,-3));
 		protoType.getBlockCells().add(new BlockCell(-1,-1));
 		protoType.getBlockCells().add(new BlockCell(-1,1));
@@ -55,14 +55,14 @@ public class BlockGenerator {
 		
 		blockPrototypes.add(protoType);
 		
-		protoType = new BlockPrototype("|__");
+		protoType = new BlockPrototype("|__", 255, 0, 255);
 		protoType.getBlockCells().add(new BlockCell(-1,-1));
 		protoType.getBlockCells().add(new BlockCell(-1,-3));
 		protoType.getBlockCells().add(new BlockCell(-1,1));
 		protoType.getBlockCells().add(new BlockCell(1,1));
 		blockPrototypes.add(protoType);
 		
-		protoType = new BlockPrototype("|+|");
+		protoType = new BlockPrototype("|+|", 0, 0, 255);
 		protoType.getBlockCells().add(new BlockCell(-2,-2));
 		protoType.getBlockCells().add(new BlockCell(0,-2));
 		protoType.getBlockCells().add(new BlockCell(0,0));

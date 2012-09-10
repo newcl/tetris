@@ -25,11 +25,11 @@ public class Block {
 	private int minX, maxX, minY, maxY;
 	private boolean oddX;
 	private boolean oddY;
-	public Block(BlockPrototype protoType, int x, int y, int color){
+	public Block(BlockPrototype protoType, int x, int y){
 		this.protoType = protoType;
 		this.x = x;
 		this.y = y;
-		this.color = color;
+		this.color = protoType.getColor();
 		
 		cells = new BlockCell[protoType.getBlockCells().size()];
 		for(int i=0;i < cells.length; i++)
