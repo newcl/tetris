@@ -233,7 +233,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	{
 		blockContainer.fixBlock(currentBlock);
 		currentBlock = nextBlock;
-		boolean canPutNextBlockInContainer = findPositionForCurrentBlock();
+		boolean canPutNextBlockInContainer = findPositionForBlock(currentBlock);
 		if(canPutNextBlockInContainer)
 		{
 			nextBlock = generateNextBlock();
@@ -249,16 +249,10 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		
 		return canPutNextBlockInContainer;
 	}
-	
+														
 	private Block generateNextBlock()
 	{
-		Block block = new Block(blockGenerator.getRandomBlockPrototype(), 4, 4);
-		
-		if(!blockContainer.canMoveDown(block))
-		{
-			blockContainer.reset();
-		}
-		
+		Block block = blockGenerator.generate();
 		return block;
 	}
 	
@@ -266,33 +260,33 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	{
 		currentBlock = generateNextBlock();
 		nextBlock = generateNextBlock();
-		findPositionForCurrentBlock();
+		Assert.judge(findPositionForBlock(currentBlock), "Unabled to init position for the 1st block.");
 		updateShaowBlock();
 	}
 	
-	private boolean findPositionForCurrentBlock()
+	private boolean findPositionForBlock(Block block)
 	{
 		int x = blockContainer.getNumCols();
-		int y = -currentBlock.getMinY();
+		int y = -block.getMinY();
 		
-		if(currentBlock.isOddX())
+		if(block.isOddX())
 		{
 			x += 1;
 		}
 		
-		if((y + currentBlock.getMaxY()) % 2 != 0)
+		if((y + block.getMaxY()) % 2 != 0)
 		{
 			y += 1;
 		}
 		
-		currentBlock.setX(x);
-		currentBlock.setY(y);
+		block.setX(x);
+		block.setY(y);
 		boolean validPositionFound = false;
-		while(currentBlock.getY() + currentBlock.getMaxY() > 0)
+		while(block.getY() + block.getMaxY() > 0)
 		{
-			if(blockContainer.collideWithContainer(currentBlock))
+			if(blockContainer.collideWithContainer(block))
 			{
-				currentBlock.setY(currentBlock.getY() - 2);
+				block.setY(block.getY() - 2);
 			}
 			else
 			{
@@ -306,8 +300,8 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	
 	private void updateShaowBlock()
 	{
-		shadowBlock = new Block(currentBlock);
-		shadowBlock.setColor(0);
+		shadowBlock = currentBlock.duplicate();
+		shadowBlock.setColor(0xff000000|128<<16|128<<8|128);
 	}
 	
 	public void run() {

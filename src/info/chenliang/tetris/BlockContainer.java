@@ -142,7 +142,7 @@ public class BlockContainer {
 			containerRow.reset();
 		}
 		
-		for(int row=fullRows.get(0).getRow();fallDownRows.size() > 0;row--)
+		for(int row=fullRows.get(0).getRow();fallDownRows.size() > 0 && row >= 0;row--)
 		{
 			BlockContainerRow fallDownRow = fallDownRows.get(0);
 			

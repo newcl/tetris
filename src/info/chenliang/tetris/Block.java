@@ -1,7 +1,7 @@
 package info.chenliang.tetris;
 
 
-public class Block {
+public abstract class Block {
 	//				|
 	//				|
 	//				|
@@ -17,75 +17,30 @@ public class Block {
 	//				|
 	//				| +
 	
-	private BlockPrototype protoType;
-	private int x,y;
-	private int color;
-	private BlockCell[] cells;
+	protected int x,y;
+	protected int color;
 	
-	private int minX, maxX, minY, maxY;
-	private boolean oddX;
-	private boolean oddY;
-	public Block(BlockPrototype protoType, int x, int y){
-		this.protoType = protoType;
+	protected int minX, maxX, minY, maxY;
+	protected boolean oddX;
+	protected boolean oddY;
+	
+	public Block(int x, int y, int color)
+	{
 		this.x = x;
 		this.y = y;
-		this.color = protoType.getColor();
-		
-		cells = new BlockCell[protoType.getBlockCells().size()];
-		for(int i=0;i < cells.length; i++)
-		{
-			cells[i] = new BlockCell(protoType.getBlockCells().get(i));
-			
-			//cells[i].x *= 2;
-			//cells[i].y *= 2;
-		}
-		
-		updateBounds();
-		/*
-		int centerX = minX + (maxX - minX) / 2;
-		int centerY = minY + (maxY - minY) / 2;
-		for(int i=0;i < cells.length; i++)
-		{
-			cells[i].x -= centerX;
-			cells[i].y -= centerY;
-			
-			if(cells[i].x % 2 != 0)
-			{
-				oddX = true;
-			}
-			
-			if(cells[i].y % 2 != 0)
-			{
-				oddY = true;
-			}
-		}
-		*/
-		
-		for(int i=0;i < cells.length; i++)
-		{
-			if(cells[i].x % 2 != 0)
-			{
-				oddX = true;
-			}
-			
-			if(cells[i].y % 2 != 0)
-			{
-				oddY = true;
-			}
-		}
-		
-		if(!((oddX && oddY) || ((!oddX)&&(!oddY))))
-		{
-			throw new RuntimeException("shit");
-		}
-//		minX -= centerX;
-//		maxX -= centerX;
-//		minY -= centerY;
-//		maxY -= centerY;
+		this.color = color;
 	}
 	
-	private void updateBounds()
+	protected void init()
 	{
+		updateBounds();
+		initParity();
+	}
+	
+	protected void updateBounds()
+	{
+		BlockCell[] cells = getCells();
+		
 		minX = cells[0].x;
 		maxX = cells[0].x;
 		minY = cells[0].y;
@@ -99,21 +54,26 @@ public class Block {
 		}
 	}
 	
-	public Block(Block block)
-	{
-		this.protoType = block.protoType;
-		this.x = block.x;
-		this.y = block.y;
-		this.color = block.color;
+	protected void initParity(){
+		BlockCell[] cells = getCells();
 		
-		cells = new BlockCell[block.protoType.getBlockCells().size()];
 		for(int i=0;i < cells.length; i++)
 		{
-			cells[i] = new BlockCell(block.cells[i]);
-		}	
+			if(cells[i].x % 2 != 0)
+			{
+				oddX = true;
+			}
+			
+			if(cells[i].y % 2 != 0)
+			{
+				oddY = true;
+			}
+		}
+		
+		Assert.judge((oddX && oddY) || ((!oddX)&&(!oddY)), "vertical & horizontal should be both odd or both even.");
 	}
 	
-	private void rotateBlockPosition(BlockCell cell){
+	protected void rotateBlockPosition(BlockCell cell){
 		int x = cell.x;
 		int y = cell.y;
 		
@@ -121,7 +81,7 @@ public class Block {
 		cell.y = x;
 	}
 	
-	private void rotateBlockCell(BlockCell cell){
+	protected void rotateBlockCell(BlockCell cell){
 		BlockCell[] bounds = new BlockCell[4];
 		bounds[0] = new BlockCell(cell.x, cell.y);
 		bounds[1] = new BlockCell(cell.x + 2, cell.y);
@@ -144,35 +104,6 @@ public class Block {
 		
 		cell.x = cellX;
 		cell.y = cellY;
-	}
-	
-	
-	
-	public void rotate(){
-		//x' = x*cosk - y*sink 
-		//y' = x*sink + y*cosk
-		// k = 90
-		//x' = -y
-		//y' = x
-		for (int i = 0; i < cells.length; i++) {
-			BlockCell cell = cells[i];
-			rotateBlockCell(cell);
-		}
-		
-		updateBounds();
-	}
-	
-	public BlockCell[] tryRotate(){
-		BlockCell[] rotatedCells = new BlockCell[cells.length];
-		for(int i=0;i < rotatedCells.length; i++){
-			BlockCell cell = cells[i];
-			BlockCell rotatedCell = new BlockCell(cell.x, cell.y);
-			
-			rotatedCells[i] = rotatedCell;
-			
-			rotateBlockCell(rotatedCell);
-		}
-		return rotatedCells;
 	}
 	
 	public void translate(int deltaX, int deltaY){
@@ -209,10 +140,6 @@ public class Block {
 		this.color = color;
 	}
 
-	public BlockPrototype getProtoType() {
-		return protoType;
-	}
-
 	public int getMinX() {
 		return minX;
 	}
@@ -237,8 +164,8 @@ public class Block {
 		return oddY;
 	}
 
-	public BlockCell[] getCells() {
-		return cells;
-	}
-	
+	public abstract BlockCell[] getCells();
+	public abstract Block duplicate();
+	public abstract void rotate();
+	public abstract BlockCell[] tryRotate();
 }
