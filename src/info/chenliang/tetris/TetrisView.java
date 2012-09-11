@@ -1,5 +1,8 @@
 package info.chenliang.tetris;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -31,6 +34,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		if(this.currentAction == BlockControlAction.NONE)
 		{
 			lastActionTime = 0;
+			lastAction = BlockControlAction.NONE;
 		}
 	}
 
@@ -46,11 +50,13 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	private Block currentBlock;
 	private Block nextBlock;
 	
-	private int inputCheckInterval = 120;
+	private int inputCheckInterval = 80;
 	private long lastActionTime;
+	private BlockControlAction lastAction = BlockControlAction.NONE;
 	
-	private int fullRowBlinkCount;
 	private Block shadowBlock;
+	
+	private List<GameObject> gameObjects = new ArrayList<GameObject>(); 
 	
 	public TetrisView(Context context, BlockContainer blockContainer, BlockGenerator blockGenerator) {
 		super(context);
@@ -102,7 +108,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 
 	private boolean shouldCheckInputAction()
 	{
-		return System.currentTimeMillis() - lastActionTime >= inputCheckInterval;
+		return currentAction != lastAction || System.currentTimeMillis() - lastActionTime >= inputCheckInterval;
 	}
 	
 	private void gameTick(int timeElapsed){
@@ -148,6 +154,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			if(currentAction != BlockControlAction.NONE)
 			{
 				lastActionTime = System.currentTimeMillis();
+				lastAction = currentAction;
 			}
 		}
 		
@@ -161,11 +168,41 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			}				
 		}
 		
-		if(fullRowBlinkCount >= 3)
+		if(blockContainer.isFullRowDetected())
 		{
-			blockContainer.removeFullRows();
-			
-			fullRowBlinkCount = 0;
+			/*
+			List<BlockContainerRow> fullRows = blockContainer.getFullRows();
+			for(int i=0;i < fullRows.size() ;i++)
+			{
+				BlockContainerRow containerRow = fullRows.get(i);
+				int xOffset = xMargin;
+				int yOffset = yMargin + containerRow.getRow()*cellSize;
+				for(int col=0; col < blockContainer.getNumCols(); col++)
+				{
+					BlockContainerCell containerCell = containerRow.getColumn(col);
+					
+					GameObject gameObject = null;
+					
+					gameObject = new GameObject(xOffset + cellSize/ 4, yOffset + cellSize/ 4, containerCell.getColor());
+					gameObject.setShape(new RectangleShape(gameObject.getX(), gameObject.getY(), cellSize, cellSize));
+					gameObjects.add(gameObject);
+					
+					gameObject = new GameObject(xOffset + cellSize/ 2, yOffset + cellSize/ 4, containerCell.getColor());
+					gameObject.setShape(new RectangleShape(gameObject.getX(), gameObject.getY(), cellSize, cellSize));
+					gameObjects.add(gameObject);
+					
+					gameObject = new GameObject(xOffset + cellSize/ 4, yOffset + cellSize/ 2, containerCell.getColor());
+					gameObject.setShape(new RectangleShape(gameObject.getX(), gameObject.getY(), cellSize, cellSize));
+					gameObjects.add(gameObject);
+					
+					gameObject = new GameObject(xOffset + cellSize/ 2, yOffset + cellSize/ 2, containerCell.getColor());
+					gameObject.setShape(new RectangleShape(gameObject.getX(), gameObject.getY(), cellSize, cellSize));
+					gameObjects.add(gameObject);
+				}
+				
+			}
+			*/
+			blockContainer.removeFullRows();		
 		}
 		
 		if(testBlockDownTime >= testBlockDownInterval){
@@ -179,7 +216,18 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			shadowBlock.translate(0, 2);
 		}
 		
+		tickGameObjects(timeElapsed);
 	}
+	
+	private void tickGameObjects(int timeElapsed)
+	{
+		for(int i=0;i < gameObjects.size();i++)
+		{
+			GameObject gameObject = gameObjects.get(i);
+			gameObject.tick(timeElapsed);
+		}
+	}
+	
 	
 	private boolean fixCurrentBlock()
 	{
@@ -274,6 +322,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			
 			gameTick(timeElapsed);
 			gameDraw();
+			removeDeadGameObjects();
 			
 			lastTickTime = currentTime;
 			try {
@@ -281,6 +330,18 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			}
+		}
+	}
+	
+	private void removeDeadGameObjects()
+	{
+		for(int i=gameObjects.size()-1;i >= 0;i--)
+		{
+			GameObject gameObject = gameObjects.get(i);
+			if(gameObject.isFinished())
+			{
+				gameObjects.remove(i);
 			}
 		}
 	}
@@ -328,7 +389,9 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			
 			paint.setStyle(Style.FILL);
 			paint.setColor(0xff000000);
-			canvas.drawRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight, paint);
+			canvas.drawRect(0, 0, screenWidth, screenHeight, paint);
+
+			canvas.clipRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight);
 			
 			paint.setStyle(Style.STROKE);
 			paint.setColor(0xffffffff);
@@ -336,35 +399,48 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			
 			for(int row=0; row < blockContainer.getNumRows(); row++){
 				BlockContainerRow containerRow = blockContainer.getRow(row);
+				for(int col=0; col < blockContainer.getNumCols(); col++){
+					BlockContainerCell cell = containerRow.getColumn(col);
+					if(cell.getStatus() == BlockContainerCellStatus.OCCUPIED){
+						drawBlockCell(canvas, col, row, cell.getColor());
+					}
+				}
+				/*
 				boolean drawRow = true;
 				if(containerRow.isFull())
 				{
 					drawRow = System.currentTimeMillis() % 700 / 350 == 1;
-					fullRowBlinkCount ++;
 				}
 				if(drawRow)
 				{
 					for(int col=0; col < blockContainer.getNumCols(); col++){
 						BlockContainerCell cell = containerRow.getColumn(col);
-						if(cell.status == BlockContainerCellStatus.OCCUPIED){
-							drawBlockCell(canvas, col, row, cell.color);
+						if(cell.getStatus() == BlockContainerCellStatus.OCCUPIED){
+							drawBlockCell(canvas, col, row, cell.getColor());
 						}
 					}	
 				}
-				
+				*/
 			}
 			
-			
-			drawBlock(canvas, currentBlock);
-			
 			drawBlock(canvas, shadowBlock);
-			
+			drawBlock(canvas, currentBlock);
+			drawGameObjects(canvas);
 			try {
 				surfaceHolder.unlockCanvasAndPost(canvas);
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	private void drawGameObjects(Canvas canvas)
+	{
+		for(int i=0;i < gameObjects.size();i++)
+		{
+			GameObject gameObject = gameObjects.get(i);
+			gameObject.draw(canvas, paint);
 		}
 	}
 	

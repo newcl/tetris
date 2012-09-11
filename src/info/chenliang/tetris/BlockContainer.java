@@ -1,12 +1,16 @@
 package info.chenliang.tetris;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 
 public class BlockContainer {
-	//private BlockContainerCell[][] containerCells;
 	private BlockContainerRow[] containerRows;
 	
 	private int numRows, numCols;
+	
+	private boolean fullRowDetected;
 	
 	public BlockContainer(int numRows, int numCols){
 		this.numRows = numRows;
@@ -49,7 +53,7 @@ public class BlockContainer {
 				if(containerX >= 0 && containerX < numCols)
 				{
 					BlockContainerCell containerCell = containerRow.getColumn(containerX);
-					if(containerCell.status == BlockContainerCellStatus.OCCUPIED){
+					if(containerCell.getStatus() == BlockContainerCellStatus.OCCUPIED){
 						return true;
 					}	
 				}
@@ -82,6 +86,10 @@ public class BlockContainer {
 				if(containerX >= 0 && containerX < numCols)
 				{
 					containerRow.fixColumn(containerX, block.getColor());
+					if(containerRow.isFull())
+					{
+						fullRowDetected = true;
+					}
 				}
 			}
 		}
@@ -110,29 +118,59 @@ public class BlockContainer {
 	
 	public void removeFullRows()
 	{
-		BlockContainerRow lastFullRow = null;
+		List<BlockContainerRow> fullRows = new ArrayList<BlockContainerRow>();
+		List<BlockContainerRow> fallDownRows = new ArrayList<BlockContainerRow>();
+		
 		for(int row= numRows -1; row >= 0; row--)
 		{
 			BlockContainerRow containerRow = containerRows[row];
 			if(containerRow.isFull())
 			{
-				lastFullRow = containerRow;
+				fullRows.add(containerRow);
 			}
-			else
+			else 
 			{
-				if(lastFullRow != null)
+				if(!containerRow.isEmpty() && fullRows.size() > 0)
 				{
-					lastFullRow.copy(containerRow);
-					lastFullRow = containerRow;
+					fallDownRows.add(containerRow);
 				}
-				
 			}
-			
 		}
 		
-		if(lastFullRow != null)
+		for(BlockContainerRow containerRow:fullRows)
 		{
-			lastFullRow.reset();
+			containerRow.reset();
 		}
+		
+		for(int row=fullRows.get(0).getRow();fallDownRows.size() > 0;row--)
+		{
+			BlockContainerRow fallDownRow = fallDownRows.get(0);
+			
+			BlockContainerRow containerRow = containerRows[row];
+			containerRow.copy(fallDownRow);
+			
+			fallDownRow.reset();
+			fallDownRows.remove(0);
+		}
+		
+		fullRowDetected = false;
+		
+	}
+	
+	public List<BlockContainerRow> getFullRows()
+	{
+		List<BlockContainerRow> fullRows = new ArrayList<BlockContainerRow>();
+		for(int i=0; i < containerRows.length; i++)
+		{
+			if(containerRows[i].isFull())
+			{
+				fullRows.add(containerRows[i]);
+			}
+		}
+		return fullRows;
+	}
+
+	public boolean isFullRowDetected() {
+		return fullRowDetected;
 	}
 }
