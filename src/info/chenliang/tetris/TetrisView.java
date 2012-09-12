@@ -3,11 +3,21 @@ package info.chenliang.tetris;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jbox2d.collision.shapes.MassData;
+import org.jbox2d.collision.shapes.PolygonShape;
+import org.jbox2d.common.Vec2;
+import org.jbox2d.dynamics.Body;
+import org.jbox2d.dynamics.BodyDef;
+import org.jbox2d.dynamics.BodyType;
+import org.jbox2d.dynamics.FixtureDef;
+import org.jbox2d.dynamics.World;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Rect;
+import android.util.FloatMath;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
@@ -23,21 +33,10 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	
 	private BlockControlAction currentAction;
 	
+	private World box2dWorld;
+	
 	private final static int REFRESH_INVERVAL = 30;
 	
-	public BlockControlAction getCurrentAction() {
-		return currentAction;
-	}
-
-	public void setCurrentAction(BlockControlAction currentAction) {
-		this.currentAction = currentAction;
-		if(this.currentAction == BlockControlAction.NONE)
-		{
-			lastActionTime = 0;
-			lastAction = BlockControlAction.NONE;
-		}
-	}
-
 	private int testBlockDownInterval;
 	private int testBlockDownTime;
 	
@@ -71,6 +70,9 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		testBlockDownInterval = 1000;
 		
 		currentAction = BlockControlAction.NONE;
+		
+		Vec2 gravity = new Vec2(0, 16);
+		box2dWorld = new World(gravity, true);
 	}
 	
 	private void initViewParams(){
@@ -111,6 +113,22 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		return currentAction != lastAction || System.currentTimeMillis() - lastActionTime >= inputCheckInterval;
 	}
 	
+	private void testBox2d(Block block)
+	{
+		
+		BlockCell[] cells = block.getCells();
+		for(int i=0; i < cells.length; i++)
+		{
+			BlockCell cell = cells[i];
+			int xOffset = xMargin + ((block.getX() + cell.x) / 2) * cellSize;
+			int yOffset = yMargin + ((block.getY() + cell.y) / 2) * cellSize;
+			
+			GameObject gameObject = new GameObject(block.getColor());
+			bindBox2dBodyToGameObject(xOffset + cellSize/ 4, yOffset + cellSize/ 4, gameObject);
+			gameObjects.add(gameObject);
+		}
+	}
+	
 	private void gameTick(int timeElapsed){
 		testBlockDownTime += timeElapsed;
 		
@@ -121,6 +139,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			switch(currentAction){
 			case TRANSFORM:
 				if(blockContainer.canRotate(currentBlock)){
+					testBox2d(currentBlock);
 					currentBlock.rotate();
 				}
 				break;
@@ -170,7 +189,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		
 		if(blockContainer.isFullRowDetected())
 		{
-			/*
+			
 			List<BlockContainerRow> fullRows = blockContainer.getFullRows();
 			for(int i=0;i < fullRows.size() ;i++)
 			{
@@ -179,29 +198,35 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 				int yOffset = yMargin + containerRow.getRow()*cellSize;
 				for(int col=0; col < blockContainer.getNumCols(); col++)
 				{
+					
+					/*
 					BlockContainerCell containerCell = containerRow.getColumn(col);
 					
 					GameObject gameObject = null;
 					
-					gameObject = new GameObject(xOffset + cellSize/ 4, yOffset + cellSize/ 4, containerCell.getColor());
-					gameObject.setShape(new RectangleShape(gameObject.getX(), gameObject.getY(), cellSize, cellSize));
+					gameObject = new GameObject(containerCell.getColor());
+					bindBox2dBodyToGameObject(xOffset + cellSize/ 4, yOffset + cellSize/ 4, gameObject);
 					gameObjects.add(gameObject);
 					
+					
 					gameObject = new GameObject(xOffset + cellSize/ 2, yOffset + cellSize/ 4, containerCell.getColor());
-					gameObject.setShape(new RectangleShape(gameObject.getX(), gameObject.getY(), cellSize, cellSize));
+					bindBox2dBodyToGameObject(gameObject);
 					gameObjects.add(gameObject);
 					
 					gameObject = new GameObject(xOffset + cellSize/ 4, yOffset + cellSize/ 2, containerCell.getColor());
-					gameObject.setShape(new RectangleShape(gameObject.getX(), gameObject.getY(), cellSize, cellSize));
+					bindBox2dBodyToGameObject(gameObject);
 					gameObjects.add(gameObject);
 					
 					gameObject = new GameObject(xOffset + cellSize/ 2, yOffset + cellSize/ 2, containerCell.getColor());
-					gameObject.setShape(new RectangleShape(gameObject.getX(), gameObject.getY(), cellSize, cellSize));
+					bindBox2dBodyToGameObject(gameObject);
 					gameObjects.add(gameObject);
+					
+					*/
+					xOffset += cellSize;
 				}
 				
 			}
-			*/
+			
 			blockContainer.removeFullRows();		
 		}
 		
@@ -219,8 +244,54 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		tickGameObjects(timeElapsed);
 	}
 	
+	private void bindBox2dBodyToGameObject(int x, int y, GameObject gameObject)
+	{
+		BodyDef bodyDef = null;
+		
+		bodyDef = new BodyDef();
+		bodyDef.type = BodyType.DYNAMIC;
+		bodyDef.position.set(x, y);
+		//bodyDef.allowSleep = false;
+		Body body = box2dWorld.createBody(bodyDef);
+		
+		PolygonShape shape = new PolygonShape();
+		//shape.setAsBox(cellSize/4, cellSize/4);
+		shape.setAsBox(1, 1);
+		
+		FixtureDef fixtureDef = new FixtureDef();
+		fixtureDef.shape = shape;
+		fixtureDef.density = 0.01f;
+		
+//		MassData massData = new MassData();
+//		massData.I = 5f;
+//		body.setMassData(massData);
+		
+		body.createFixture(fixtureDef);
+		
+		int dx = (int)(Math.random()*2) == 0 ? -1:1;
+		int dy = (int)(Math.random()*2) == 0 ? -1:1;
+		
+		float angle = 45 + (int)(Math.random()*90);
+		float angleInRandian = (float)Math.toRadians(angle);
+		int speed = 150;
+		body.setLinearVelocity(new Vec2(FloatMath.sin(angleInRandian)*speed,FloatMath.cos(angleInRandian)*speed));
+		gameObject.setBody(body);
+
+		//body.setAngularVelocity((float)(Math.toRadians(35)));
+		//body.setAngularVelocity(500);
+		//body.applyForce(, new Vec2());
+		//body.applyTorque(-100);
+		
+		body.applyAngularImpulse(200);
+		
+	}
+	
 	private void tickGameObjects(int timeElapsed)
 	{
+		//box2dWorld.step((float)(1.0/60), 6, 2);
+		box2dWorld.step((float)(1.0/REFRESH_INVERVAL), 6, 2);
+		
+		
 		for(int i=0;i < gameObjects.size();i++)
 		{
 			GameObject gameObject = gameObjects.get(i);
@@ -465,4 +536,16 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		
 	}
 	
+	public BlockControlAction getCurrentAction() {
+		return currentAction;
+	}
+
+	public void setCurrentAction(BlockControlAction currentAction) {
+		this.currentAction = currentAction;
+		if(this.currentAction == BlockControlAction.NONE)
+		{
+			lastActionTime = 0;
+			lastAction = BlockControlAction.NONE;
+		}
+	}
 }
