@@ -26,17 +26,17 @@ public class BlockGenerator {
 		frames = new ArrayList<FixedFrame>();
 		
 		cells = new ArrayList<BlockCell>();
-		cells.add(new BlockCell(-2,-2));
-		cells.add(new BlockCell(2,-2));
-		cells.add(new BlockCell(-4,0));
-		cells.add(new BlockCell(-2,0));
+		cells.add(new BlockCell(0, -4));
+		cells.add(new BlockCell(0,-2));
+		cells.add(new BlockCell(0,0));
+		cells.add(new BlockCell(0,2));
 		frames.add(new FixedFrame(cells));
 		
 		cells = new ArrayList<BlockCell>();
-		cells.add(new BlockCell(-2,-4));
-		cells.add(new BlockCell(-2,-2));
-		cells.add(new BlockCell(0,-2));
+		cells.add(new BlockCell(-4,0));
+		cells.add(new BlockCell(-2,0));
 		cells.add(new BlockCell(0,0));
+		cells.add(new BlockCell(2,0));
 		frames.add(new FixedFrame(cells));
 		
 		fixedFrames.add(frames);
@@ -61,8 +61,6 @@ public class BlockGenerator {
 		
 		fixedFrames.add(frames);
 		
-		//__
-		//  |__
 		frames = new ArrayList<FixedFrame>();
 		
 		cells = new ArrayList<BlockCell>();
@@ -105,32 +103,6 @@ public class BlockGenerator {
 		protoType.getBlockCells().add(new BlockCell(1,-1));
 		
 		blockPrototypes.add(protoType);
-		
-		/*
-		protoType = new BlockPrototype("|_____|", 255, 125, 0);
-		protoType.getBlockCells().add(new BlockCell(0,-4));
-		protoType.getBlockCells().add(new BlockCell(0,-2));
-		protoType.getBlockCells().add(new BlockCell(0,0));
-		protoType.getBlockCells().add(new BlockCell(0,2));
-		
-		blockPrototypes.add(protoType);
-		
-		protoType = new BlockPrototype("__|--", 0, 255, 0);
-		protoType.getBlockCells().add(new BlockCell(-1,-1));
-		protoType.getBlockCells().add(new BlockCell(-1,-3));
-		protoType.getBlockCells().add(new BlockCell(1,-3));
-		protoType.getBlockCells().add(new BlockCell(-3,-1));
-		
-		blockPrototypes.add(protoType);
-		
-		protoType = new BlockPrototype("--|__", 255 ,255 ,0);
-		protoType.getBlockCells().add(new BlockCell(-1,-1));
-		protoType.getBlockCells().add(new BlockCell(-1,-3));
-		protoType.getBlockCells().add(new BlockCell(-3,-3));
-		protoType.getBlockCells().add(new BlockCell(1,-1));
-		
-		blockPrototypes.add(protoType);
-		*/
 		
 		protoType = new BlockPrototype("__|", 0, 255, 255);
 		protoType.getBlockCells().add(new BlockCell(-1,-3));
@@ -178,7 +150,6 @@ public class BlockGenerator {
 	{
 		int blockTypeCount = blockPrototypes.size() + fixedFrames.size();
 		int choice = (int)(Math.random()*blockTypeCount);
-		choice = 6;
 		if(choice < blockPrototypes.size())
 		{
 			return generateRandomRotatableBlock();

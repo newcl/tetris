@@ -15,7 +15,9 @@ public class FixedFramesBlock extends Block {
 	@Override
 	public BlockCell[] getCells() {
 		// TODO Auto-generated method stub
-		return frames.get(currentFrame).getCells().toArray(new BlockCell[0]);
+		List<BlockCell> l = frames.get(currentFrame).getCells();
+		BlockCell[] bcs = l.toArray(new BlockCell[0]);
+		return bcs;
 	}
 
 	@Override

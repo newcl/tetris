@@ -40,6 +40,9 @@ public class BlockContainer {
 		for(int i=0; i<cells.length;i ++){
 			BlockCell cell = cells[i];
 			
+			Assert.judge((x + cell.x) % 2 == 0, "should be even");
+			Assert.judge((y + cell.y) % 2 == 0, "should be even");
+			
 			int containerX = (x + cell.x) / 2;
 			int containerY = (y + cell.y) / 2;
 			
@@ -78,6 +81,10 @@ public class BlockContainer {
 		BlockCell[] cells = block.getCells();
 		for(int i=0; i<cells.length; i++){
 			BlockCell cell = cells[i];
+			
+			Assert.judge((block.getX() + cell.x) % 2 == 0, "should be even");
+			Assert.judge((block.getY() + cell.y) % 2 == 0, "should be even");
+			
 			int containerX = (block.getX() + cell.x) / 2;
 			int containerY = (block.getY() + cell.y) / 2;
 			

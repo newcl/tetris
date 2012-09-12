@@ -344,6 +344,9 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		BlockCell[] cells = block.getCells();
 		for (int i = 0; i < cells.length; i++) {
 			BlockCell cell = cells[i];
+			
+			Assert.judge((block.getX() + cell.x) % 2 == 0, "block position not right, should be even.");
+			Assert.judge((block.getY() + cell.y) % 2 == 0, "block position not right, should be even.");
 			int cellX = (block.getX() + cell.x) / 2;
 			int cellY = (block.getY() + cell.y) / 2;
 			drawBlockCell(canvas, cellX, cellY, block.getColor());
