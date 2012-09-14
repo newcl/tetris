@@ -165,7 +165,6 @@ public class GameObject implements Tickable, Drawable {
 	public void draw(Canvas canvas, Paint paint) {
 		paint.setStyle(Style.FILL);
 		paint.setColor(color);
-		paint.setAntiAlias(true);
 		
 		canvas.save();
 		canvas.translate(x, y);

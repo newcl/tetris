@@ -18,14 +18,15 @@ import android.view.SurfaceView;
 
 public class TetrisView extends SurfaceView implements Runnable, Callback{
 
-	private Paint paint = new Paint();
+	private Paint paint;
 	private Thread paintThread;
 	private SurfaceHolder surfaceHolder;
 	private BlockContainer blockContainer;
 	private BlockGenerator blockGenerator;
+	private boolean paused;
 	
 	private BlockControlAction currentAction;
-	
+
 	private final static int REFRESH_INVERVAL = 30;
 	
 	private int testBlockDownInterval;
@@ -59,6 +60,8 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	
 	private Block holdBlock;
 	
+	private boolean hasHeldInThisTurn;
+	
 	public TetrisView(Context context, BlockContainer blockContainer, BlockGenerator blockGenerator) {
 		super(context);
 		setKeepScreenOn(true);
@@ -72,6 +75,8 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		testBlockDownInterval = 1000;
 		
 		currentAction = BlockControlAction.NONE;
+		paint = new Paint();
+		paint.setAntiAlias(true);
 	}
 	
 	private void initViewParams(){
@@ -131,85 +136,88 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	}
 	
 	private void gameTick(int timeElapsed){
-		testBlockDownTime += timeElapsed;
-		
-		boolean inputDown = false;
-		
-		if(shouldCheckInputAction())
+		if(!paused)
 		{
-			switch(currentAction){
-			case TRANSFORM:
-				if(blockContainer.canRotate(currentBlock)){
-					currentBlock.rotate();
-				}
-				break;
-			case MOVE_LEFT:
-				if(blockContainer.canMoveLeft(currentBlock)){
-					currentBlock.translate(-2, 0);
-				}
-				break;
-			case MOVE_RIGHT:
-				if(blockContainer.canMoveRight(currentBlock)){
-					currentBlock.translate(2, 0);
-				}
-				break;
-			case NONE:
-				break;
-			case MOVE_DOWN:
-				inputDown = true;
-				break;
-			case INSTANT_DOWN:
-				while(blockContainer.canMoveDown(currentBlock))
-				{
-					currentBlock.translate(0, 2);
-				}
-				
-				fixCurrentBlock();
-				break;
-			default:
-				break;
-			}	
+			testBlockDownTime += timeElapsed;
 			
-			if(currentAction != BlockControlAction.NONE)
+			boolean inputDown = false;
+			
+			if(shouldCheckInputAction())
 			{
-				lastActionTime = System.currentTimeMillis();
-				lastAction = currentAction;
+				switch(currentAction){
+				case TRANSFORM:
+					if(blockContainer.canRotate(currentBlock)){
+						currentBlock.rotate();
+					}
+					break;
+				case MOVE_LEFT:
+					if(blockContainer.canMoveLeft(currentBlock)){
+						currentBlock.translate(-2, 0);
+					}
+					break;
+				case MOVE_RIGHT:
+					if(blockContainer.canMoveRight(currentBlock)){
+						currentBlock.translate(2, 0);
+					}
+					break;
+				case NONE:
+					break;
+				case MOVE_DOWN:
+					inputDown = true;
+					break;
+				case INSTANT_DOWN:
+					while(blockContainer.canMoveDown(currentBlock))
+					{
+						currentBlock.translate(0, 2);
+					}
+					
+					fixCurrentBlock();
+					break;
+				default:
+					break;
+				}	
+				
+				if(currentAction != BlockControlAction.NONE)
+				{
+					lastActionTime = System.currentTimeMillis();
+					lastAction = currentAction;
+				}
 			}
+			
+			
+			boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
+			if(testDown){
+				if(blockContainer.canMoveDown(currentBlock)){
+					currentBlock.translate(0, 2);
+				}else{
+					fixCurrentBlock();
+				}				
+			}
+			
+			if(blockContainer.isFullRowDetected())
+			{
+				List<BlockContainerRow> fullRows = blockContainer.getFullRows();
+				targetScore = targetScore + calculateScore(fullRows.size());
+				addRemoveFullLineEffect(fullRows);
+				blockContainer.removeFullRows();		
+			}
+			
+			if(testBlockDownTime >= testBlockDownInterval)
+			{
+				testBlockDownTime -= testBlockDownInterval;
+			}
+			
+			updateShaowBlock();
+			
+			while(blockContainer.canMoveDown(shadowBlock))
+			{
+				shadowBlock.translate(0, 2);
+			}
+			
+			tickGameObjects(timeElapsed);
+			
+			tickScore();
 		}
-		
-		
-		boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
-		if(testDown){
-			if(blockContainer.canMoveDown(currentBlock)){
-				currentBlock.translate(0, 2);
-			}else{
-				fixCurrentBlock();
-			}				
-		}
-		
-		if(blockContainer.isFullRowDetected())
-		{
-			List<BlockContainerRow> fullRows = blockContainer.getFullRows();
-			targetScore = targetScore + calculateScore(fullRows.size());
-			addRemoveFullLineEffect(fullRows);
-			blockContainer.removeFullRows();		
-		}
-		
-		if(testBlockDownTime >= testBlockDownInterval)
-		{
-			testBlockDownTime -= testBlockDownInterval;
-		}
-		
-		updateShaowBlock();
-		
-		while(blockContainer.canMoveDown(shadowBlock))
-		{
-			shadowBlock.translate(0, 2);
-		}
-		
-		tickGameObjects(timeElapsed);
-		
-		tickScore();
 	}
 	
 	private int calculateScore(int numFullRows)
@@ -301,7 +309,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			clearScore();
 			blockContainer.reset();
 		}
-		
+		hasHeldInThisTurn = false;
 		return canPutNextBlockInContainer;
 	}
 	
@@ -473,6 +481,14 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			canvas.restore();
 			canvas.clipRect(0, 0, screenWidth, screenHeight);
 			drawInfo(canvas);
+			
+			if(paused)
+			{
+				paint.setTextSize(40);
+				paint.setColor(0xffffffff);
+				paint.setTextAlign(Align.CENTER);
+				canvas.drawText("Paused", leftMarginWidth + containerWidth/2, topMarginHeight+containerHeight/2, paint);
+			}
 			try {
 				surfaceHolder.unlockCanvasAndPost(canvas);
 			} catch (Exception e) {
@@ -576,11 +592,65 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	}
 
 	public void setCurrentAction(BlockControlAction currentAction) {
-		this.currentAction = currentAction;
-		if(this.currentAction == BlockControlAction.NONE)
+		if(!isPaused())
 		{
-			lastActionTime = 0;
-			lastAction = BlockControlAction.NONE;
+			this.currentAction = currentAction;
+			if(this.currentAction == BlockControlAction.NONE)
+			{
+				lastActionTime = 0;
+				lastAction = BlockControlAction.NONE;
+			}			
+		}
+	}
+	
+	public void pause()
+	{
+		
+	}
+	
+	public void start()
+	{
+		
+	}
+	
+	public boolean isPaused() {
+		return paused;
+	}
+
+	public void setPaused(boolean paused) {
+		this.paused = paused;
+	}
+	
+	public void hold()
+	{
+		
+		if(hasHeldInThisTurn)
+		{
+			
+		}
+		else
+		{
+			if(holdBlock == null)
+			{
+				holdBlock = currentBlock;
+				currentBlock = blockGenerator.generate();
+			}
+			else
+			{
+				Block temp = currentBlock;
+				currentBlock = holdBlock;
+				holdBlock = temp;	
+				currentBlock.setX(holdBlock.getX());
+				currentBlock.setY(holdBlock.getY());
+			}
+			
+			boolean found = findPositionForBlock(currentBlock);
+			if(!found)
+			{
+				blockContainer.reset();
+			}
+			
+			hasHeldInThisTurn = true;
 		}
 	}
 }

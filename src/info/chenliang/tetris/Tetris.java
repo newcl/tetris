@@ -1,15 +1,19 @@
 package info.chenliang.tetris;
 
 import android.app.Activity;
+
 import android.content.Context;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
+import android.view.View.OnTouchListener;
 
 public class Tetris extends Activity {
 
@@ -26,6 +30,9 @@ public class Tetris extends Activity {
 	private final int ID_TRANSFORM_BUTTON = 3003;
 	private final int ID_DOWN_BUTTON = 3004;
 	private final int ID_INSTANT_DOWN_BUTTON = 3005;
+	private final int ID_PAUSE_BUTTON = 3006;
+	private final int ID_HOLD_BUTTON = 3007;
+	
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -71,6 +78,51 @@ public class Tetris extends Activity {
         transformButton.setOnTouchListener(new BlockController(tetrisView, BlockControlAction.TRANSFORM));
         relativeLayout.addView(transformButton);
         
+        final Button pauseButton = new Button(context);
+        pauseButton.setText("Pause");
+        pauseButton.setId(ID_PAUSE_BUTTON);
+        pauseButton.setOnTouchListener(new OnTouchListener() {
+			
+			public boolean onTouch(View v, MotionEvent event) {
+				int action = event.getAction();
+				if(action == MotionEvent.ACTION_UP){
+					if(tetrisView.isPaused())
+					{
+						tetrisView.setPaused(false);
+						pauseButton.setText("Pause");
+					}
+					else
+					{
+						tetrisView.setPaused(true);
+						pauseButton.setText("Start");
+					}
+				}
+				
+				return true;
+			}
+		});
+        relativeLayout.addView(pauseButton);
+        
+        final Button holdButton = new Button(context);
+        holdButton.setText("Hold");
+        holdButton.setId(ID_HOLD_BUTTON);
+        holdButton.setOnTouchListener(new OnTouchListener() {
+			
+			public boolean onTouch(View v, MotionEvent event) {
+				int action = event.getAction();
+				if(action == MotionEvent.ACTION_UP){
+					if(!tetrisView.isPaused())
+					{
+						tetrisView.hold();	
+					}	
+				}
+				
+				return true;
+			}
+		});
+        relativeLayout.addView(holdButton);
+        
+        
         Button instantDownButton = new Button(context);
         instantDownButton.setText("|________________|");
         instantDownButton.setId(ID_INSTANT_DOWN_BUTTON);
@@ -79,30 +131,29 @@ public class Tetris extends Activity {
         
         LayoutParams tetrisLayoutParam = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         tetrisLayoutParam.addRule(RelativeLayout.ABOVE, ID_TRANSFORM_BUTTON);
-        //tetrisLayoutParam.addRule(RelativeLayout.ALIGN_TOP, ID_TRANSFORM_BUTTON);
         tetrisView.setLayoutParams(tetrisLayoutParam);
         
         LayoutParams transformButtonLayoutParam = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        //transformButtonLayoutParam.addRule(RelativeLayout.BELOW, ID_VIEW);
-        /*
-        transformButtonLayoutParam.addRule(RelativeLayout.ABOVE, ID_DOWN_BUTTON);
-        transformButtonLayoutParam.addRule(RelativeLayout.ABOVE, ID_LEFT_BUTTON);
-        transformButtonLayoutParam.addRule(RelativeLayout.ABOVE, ID_RIGHT_BUTTON);
-        */
         transformButtonLayoutParam.addRule(RelativeLayout.CENTER_HORIZONTAL);
         transformButtonLayoutParam.addRule(RelativeLayout.ABOVE, ID_DOWN_BUTTON);
-        
         transformButton.setLayoutParams(transformButtonLayoutParam);
         
+        LayoutParams pauseButtonLayoutParam = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        pauseButtonLayoutParam.addRule(RelativeLayout.LEFT_OF, ID_TRANSFORM_BUTTON);
+        pauseButtonLayoutParam.addRule(RelativeLayout.ABOVE, ID_DOWN_BUTTON);
+        pauseButton.setLayoutParams(pauseButtonLayoutParam);
+        
+        LayoutParams holdButtonLayoutParam = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        holdButtonLayoutParam.addRule(RelativeLayout.RIGHT_OF, ID_TRANSFORM_BUTTON);
+        holdButtonLayoutParam.addRule(RelativeLayout.ABOVE, ID_DOWN_BUTTON);
+        holdButton.setLayoutParams(holdButtonLayoutParam);
+        
         LayoutParams leftButtonLayoutParam = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        //leftButtonLayoutParam.addRule(RelativeLayout.BELOW, ID_TRANSFORM_BUTTON);
         leftButtonLayoutParam.addRule(RelativeLayout.LEFT_OF, ID_DOWN_BUTTON);
         leftButtonLayoutParam.addRule(RelativeLayout.ABOVE, ID_INSTANT_DOWN_BUTTON);
         leftButton.setLayoutParams(leftButtonLayoutParam);
         
         LayoutParams downButtonLayoutParam = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        //downButtonLayoutParam.addRule(RelativeLayout.RIGHT_OF, ID_LEFT_BUTTON);
-        //downButtonLayoutParam.addRule(RelativeLayout.BELOW, ID_TRANSFORM_BUTTON);
         downButtonLayoutParam.addRule(RelativeLayout.ABOVE, ID_INSTANT_DOWN_BUTTON);
         downButtonLayoutParam.addRule(RelativeLayout.CENTER_HORIZONTAL);
         downButton.setLayoutParams(downButtonLayoutParam);
@@ -110,13 +161,10 @@ public class Tetris extends Activity {
         LayoutParams rightButtonLayoutParam = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         rightButtonLayoutParam.addRule(RelativeLayout.RIGHT_OF, ID_DOWN_BUTTON);
         rightButtonLayoutParam.addRule(RelativeLayout.ABOVE, ID_INSTANT_DOWN_BUTTON);
-        //rightButtonLayoutParam.addRule(RelativeLayout.BELOW, ID_TRANSFORM_BUTTON);
         rightButton.setLayoutParams(rightButtonLayoutParam);
         
         
         LayoutParams instantDownButtonLayoutParam = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        //instantDownButtonLayoutParam.addRule(RelativeLayout.RIGHT_OF, ID_DOWN_BUTTON);
-        //instantDownButtonLayoutParam.addRule(RelativeLayout.BELOW, ID_DOWN_BUTTON);
         instantDownButtonLayoutParam.addRule(RelativeLayout.CENTER_HORIZONTAL);
         instantDownButtonLayoutParam.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
         instantDownButton.setLayoutParams(instantDownButtonLayoutParam);
