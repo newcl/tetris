@@ -164,6 +164,15 @@ public abstract class Block {
 		return oddY;
 	}
 
+	public Vector2d getSize()
+	{
+		int width = maxX - minX;
+		int height = maxY - minY;
+		Assert.judge(width%2==0, "size error");
+		Assert.judge(height%2==0, "size error");
+		return new Vector2d(width/2, height/2);
+	}
+	
 	public abstract BlockCell[] getCells();
 	public abstract Block duplicate();
 	public abstract void rotate();

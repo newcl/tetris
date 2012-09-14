@@ -3,20 +3,13 @@ package info.chenliang.tetris;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jbox2d.collision.shapes.MassData;
-import org.jbox2d.collision.shapes.PolygonShape;
-import org.jbox2d.common.Vec2;
-import org.jbox2d.dynamics.Body;
-import org.jbox2d.dynamics.BodyDef;
-import org.jbox2d.dynamics.BodyType;
-import org.jbox2d.dynamics.FixtureDef;
-import org.jbox2d.dynamics.World;
-
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Paint.Align;
+import android.graphics.Paint.FontMetrics;
 import android.graphics.Paint.Style;
-import android.graphics.Rect;
 import android.util.FloatMath;
 import android.view.KeyEvent;
 import android.view.SurfaceHolder;
@@ -33,8 +26,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	
 	private BlockControlAction currentAction;
 	
-	private World box2dWorld;
-	
 	private final static int REFRESH_INVERVAL = 30;
 	
 	private int testBlockDownInterval;
@@ -42,8 +33,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	
 	private long lastTickTime;
 	
-	private int xMargin = 30;
-	private int yMargin = 30;
 	private int cellSize;
 	
 	private Block currentBlock;
@@ -56,6 +45,19 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	private Block shadowBlock;
 	
 	private List<GameObject> gameObjects = new ArrayList<GameObject>(); 
+	
+	private float gravity = 0.5f;
+	private float angleSpeed = 33;
+	
+	private int leftMarginWidth = 30, topMarginHeight=30;
+	private int rightMarginWidth=120, bottomMarginHeight=30;
+	
+	private int containerWidth;
+	private int containerHeight;
+	
+	private int currentScore, targetScore;
+	
+	private Block holdBlock;
 	
 	public TetrisView(Context context, BlockContainer blockContainer, BlockGenerator blockGenerator) {
 		super(context);
@@ -70,9 +72,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		testBlockDownInterval = 1000;
 		
 		currentAction = BlockControlAction.NONE;
-		
-		Vec2 gravity = new Vec2(0, 16);
-		box2dWorld = new World(gravity, true);
 	}
 	
 	private void initViewParams(){
@@ -82,12 +81,19 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		final int numCols = blockContainer.getNumCols();
 		final int numRows = blockContainer.getNumRows();
 		
-		int xSize = (screenWidth - xMargin*2) / numCols;
-		int ySize = (screenHeight - yMargin*2) / numRows;
+		containerWidth = screenWidth - leftMarginWidth - rightMarginWidth;
+		containerHeight = screenHeight - topMarginHeight - bottomMarginHeight;
+		
+		int xSize = containerWidth / numCols;
+		int ySize = containerHeight / numRows;
 		
 		cellSize = Math.min(xSize, ySize);
-		xMargin = (screenWidth - cellSize*numCols) / 2;
-		yMargin = (screenHeight - cellSize*numRows) / 2;
+		
+		containerWidth = cellSize * numCols;
+		containerHeight = cellSize * numRows;
+		
+		topMarginHeight = bottomMarginHeight = (screenHeight - containerHeight) / 2;
+		rightMarginWidth = screenWidth - leftMarginWidth - containerWidth;
 	}
 
 	public BlockControlAction translateKeyToAction(int keyCode){
@@ -113,20 +119,15 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		return currentAction != lastAction || System.currentTimeMillis() - lastActionTime >= inputCheckInterval;
 	}
 	
-	private void testBox2d(Block block)
+	private float floatRandom(int scalar)
 	{
-		
-		BlockCell[] cells = block.getCells();
-		for(int i=0; i < cells.length; i++)
-		{
-			BlockCell cell = cells[i];
-			int xOffset = xMargin + ((block.getX() + cell.x) / 2) * cellSize;
-			int yOffset = yMargin + ((block.getY() + cell.y) / 2) * cellSize;
-			
-			GameObject gameObject = new GameObject(block.getColor());
-			bindBox2dBodyToGameObject(xOffset + cellSize/ 4, yOffset + cellSize/ 4, gameObject);
-			gameObjects.add(gameObject);
-		}
+		return (float)(Math.random()*scalar)*randomSign();
+	}
+	
+	private float randomSign()
+	{
+		int r = (int)(Math.random()*2);
+		return r == 0 ? -1 : 1;
 	}
 	
 	private void gameTick(int timeElapsed){
@@ -139,7 +140,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			switch(currentAction){
 			case TRANSFORM:
 				if(blockContainer.canRotate(currentBlock)){
-					testBox2d(currentBlock);
 					currentBlock.rotate();
 				}
 				break;
@@ -189,48 +189,14 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		
 		if(blockContainer.isFullRowDetected())
 		{
-			
 			List<BlockContainerRow> fullRows = blockContainer.getFullRows();
-			for(int i=0;i < fullRows.size() ;i++)
-			{
-				BlockContainerRow containerRow = fullRows.get(i);
-				int xOffset = xMargin;
-				int yOffset = yMargin + containerRow.getRow()*cellSize;
-				for(int col=0; col < blockContainer.getNumCols(); col++)
-				{
-					
-					/*
-					BlockContainerCell containerCell = containerRow.getColumn(col);
-					
-					GameObject gameObject = null;
-					
-					gameObject = new GameObject(containerCell.getColor());
-					bindBox2dBodyToGameObject(xOffset + cellSize/ 4, yOffset + cellSize/ 4, gameObject);
-					gameObjects.add(gameObject);
-					
-					
-					gameObject = new GameObject(xOffset + cellSize/ 2, yOffset + cellSize/ 4, containerCell.getColor());
-					bindBox2dBodyToGameObject(gameObject);
-					gameObjects.add(gameObject);
-					
-					gameObject = new GameObject(xOffset + cellSize/ 4, yOffset + cellSize/ 2, containerCell.getColor());
-					bindBox2dBodyToGameObject(gameObject);
-					gameObjects.add(gameObject);
-					
-					gameObject = new GameObject(xOffset + cellSize/ 2, yOffset + cellSize/ 2, containerCell.getColor());
-					bindBox2dBodyToGameObject(gameObject);
-					gameObjects.add(gameObject);
-					
-					*/
-					xOffset += cellSize;
-				}
-				
-			}
-			
+			targetScore = targetScore + calculateScore(fullRows.size());
+			addRemoveFullLineEffect(fullRows);
 			blockContainer.removeFullRows();		
 		}
 		
-		if(testBlockDownTime >= testBlockDownInterval){
+		if(testBlockDownTime >= testBlockDownInterval)
+		{
 			testBlockDownTime -= testBlockDownInterval;
 		}
 		
@@ -242,56 +208,73 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		}
 		
 		tickGameObjects(timeElapsed);
+		
+		tickScore();
 	}
 	
-	private void bindBox2dBodyToGameObject(int x, int y, GameObject gameObject)
+	private int calculateScore(int numFullRows)
 	{
-		BodyDef bodyDef = null;
-		
-		bodyDef = new BodyDef();
-		bodyDef.type = BodyType.DYNAMIC;
-		bodyDef.position.set(x, y);
-		//bodyDef.allowSleep = false;
-		Body body = box2dWorld.createBody(bodyDef);
-		
-		PolygonShape shape = new PolygonShape();
-		//shape.setAsBox(cellSize/4, cellSize/4);
-		shape.setAsBox(1, 1);
-		
-		FixtureDef fixtureDef = new FixtureDef();
-		fixtureDef.shape = shape;
-		fixtureDef.density = 0.01f;
-		
-//		MassData massData = new MassData();
-//		massData.I = 5f;
-//		body.setMassData(massData);
-		
-		body.createFixture(fixtureDef);
-		
-		int dx = (int)(Math.random()*2) == 0 ? -1:1;
-		int dy = (int)(Math.random()*2) == 0 ? -1:1;
-		
-		float angle = 45 + (int)(Math.random()*90);
-		float angleInRandian = (float)Math.toRadians(angle);
-		int speed = 150;
-		body.setLinearVelocity(new Vec2(FloatMath.sin(angleInRandian)*speed,FloatMath.cos(angleInRandian)*speed));
-		gameObject.setBody(body);
-
-		//body.setAngularVelocity((float)(Math.toRadians(35)));
-		//body.setAngularVelocity(500);
-		//body.applyForce(, new Vec2());
-		//body.applyTorque(-100);
-		
-		body.applyAngularImpulse(200);
-		
+		return numFullRows * 500;
+	}
+	
+	private void tickScore()
+	{
+		if(targetScore > currentScore)
+		{
+			int deltaScore = (targetScore - currentScore) / 2;
+			if(deltaScore <= 1)
+			{
+				currentScore = targetScore;
+			}
+			else
+			{
+				currentScore += deltaScore;
+			}
+		}
+	}
+	
+	private void addRemoveFullLineEffect(List<BlockContainerRow> fullRows)
+	{
+		for(int i=0;i < fullRows.size() ;i++)
+		{
+			BlockContainerRow containerRow = fullRows.get(i);
+			int xOffset = leftMarginWidth;
+			int yOffset = topMarginHeight + containerRow.getRow()*cellSize;
+			for(int col=0; col < blockContainer.getNumCols(); col++)
+			{
+				BlockContainerCell containerCell = containerRow.getColumn(col);
+				
+				GameObject gameObject = null;
+				
+				gameObject = new GameObject(xOffset+cellSize/4, yOffset+cellSize/4, containerCell.getColor());
+				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
+				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
+				gameObjects.add(gameObject);
+				
+				gameObject = new GameObject(xOffset+cellSize/2, yOffset+cellSize/4, containerCell.getColor());
+				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
+				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
+				gameObjects.add(gameObject);
+				
+				gameObject = new GameObject(xOffset+cellSize/4, yOffset+cellSize/2, containerCell.getColor());
+				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
+				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
+				gameObjects.add(gameObject);
+				
+				gameObject = new GameObject(xOffset+cellSize/2, yOffset+cellSize/2, containerCell.getColor());
+				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
+				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
+				gameObjects.add(gameObject);
+				
+				
+				xOffset += cellSize;
+			}
+			
+		}
 	}
 	
 	private void tickGameObjects(int timeElapsed)
 	{
-		//box2dWorld.step((float)(1.0/60), 6, 2);
-		box2dWorld.step((float)(1.0/REFRESH_INVERVAL), 6, 2);
-		
-		
 		for(int i=0;i < gameObjects.size();i++)
 		{
 			GameObject gameObject = gameObjects.get(i);
@@ -315,10 +298,17 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		}
 		else
 		{
+			clearScore();
 			blockContainer.reset();
 		}
 		
 		return canPutNextBlockInContainer;
+	}
+	
+	private void clearScore()
+	{
+		currentScore = 0;
+		targetScore = 0;
 	}
 														
 	private Block generateNextBlock()
@@ -425,8 +415,8 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	}
 	
 	private void drawBlockCell(Canvas canvas, int cellX, int cellY, int color){
-		int x = xMargin + cellX*cellSize;
-		int y = yMargin + cellY*cellSize;
+		int x = leftMarginWidth+ cellX*cellSize;
+		int y = topMarginHeight+ cellY*cellSize;
 		
 		paint.setStyle(Style.FILL);
 		paint.setColor(color);
@@ -452,11 +442,12 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			int screenWidth = getWidth();
 			int screenHeight = getHeight();
 			
-			int containerWidth = screenWidth - xMargin*2;
-			int containerHeight = screenHeight - yMargin*2;
+			int xMargin = leftMarginWidth;
+			int yMargin = topMarginHeight;
 			
 			paint.setStyle(Style.FILL);
 			paint.setColor(0xff000000);
+			canvas.save();
 			canvas.drawRect(0, 0, screenWidth, screenHeight, paint);
 
 			canvas.clipRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight);
@@ -473,33 +464,85 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 						drawBlockCell(canvas, col, row, cell.getColor());
 					}
 				}
-				/*
-				boolean drawRow = true;
-				if(containerRow.isFull())
-				{
-					drawRow = System.currentTimeMillis() % 700 / 350 == 1;
-				}
-				if(drawRow)
-				{
-					for(int col=0; col < blockContainer.getNumCols(); col++){
-						BlockContainerCell cell = containerRow.getColumn(col);
-						if(cell.getStatus() == BlockContainerCellStatus.OCCUPIED){
-							drawBlockCell(canvas, col, row, cell.getColor());
-						}
-					}	
-				}
-				*/
 			}
 			
 			drawBlock(canvas, shadowBlock);
 			drawBlock(canvas, currentBlock);
+			
 			drawGameObjects(canvas);
+			canvas.restore();
+			canvas.clipRect(0, 0, screenWidth, screenHeight);
+			drawInfo(canvas);
 			try {
 				surfaceHolder.unlockCanvasAndPost(canvas);
 			} catch (Exception e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	private int getFontHeight()
+	{
+		FontMetrics fontMetrics = paint.getFontMetrics();
+		return (int)Math.abs(FloatMath.ceil(fontMetrics.descent - fontMetrics.ascent));
+				
+	}
+	
+	private void drawInfo(Canvas canvas)
+	{
+		int yOffset = topMarginHeight;
+		int xOffset = leftMarginWidth + containerWidth;
+		
+		paint.setTextSize(20);
+		paint.setColor(Color.WHITE);
+		paint.setStyle(Style.FILL);
+		paint.setTextAlign(Align.LEFT);
+
+		int fontHeight = getFontHeight();
+		canvas.drawText("Next", xOffset + 8, yOffset + fontHeight, paint);
+		
+		yOffset += getFontHeight() + 4;
+		
+		drawBlockInUi(canvas, nextBlock, xOffset + rightMarginWidth/2, yOffset + cellSize * 2);
+		
+		yOffset += cellSize * 4 + 4;
+		
+		paint.setColor(0xffffffff);
+		canvas.drawText("Hold", xOffset + 8, yOffset + fontHeight, paint);
+		
+		yOffset += getFontHeight() + 4;
+		
+		drawBlockInUi(canvas, holdBlock, xOffset + rightMarginWidth/2, yOffset + cellSize * 2);
+		
+		yOffset += cellSize * 4 + 4;
+		paint.setColor(0xffffffff);
+		canvas.drawText("Score:" + currentScore, xOffset + 8, yOffset + fontHeight, paint);
+	}
+	
+	private void drawBlockInUi(Canvas canvas, Block block, int x, int y)
+	{
+		if(block != null)
+		{
+			Vector2d size = block.getSize();
+			BlockCell[] cells = block.getCells();
+			for(int i=0; i < cells.length; i++)
+			{
+				float cx = (cells[i].x - block.minX)/2 - size.getX()/2;
+				float cy = (cells[i].y - block.minY)/2 - size.getY()/2;
+				
+				float bx = x + cx*cellSize;
+				float by = y + cy*cellSize;
+				
+				paint.setStyle(Style.FILL);
+				paint.setColor(block.getColor());
+				canvas.drawRect(bx, by, bx + cellSize, by + cellSize, paint);
+				
+				paint.setStyle(Style.STROKE);
+				paint.setColor(0xffffffff);
+				canvas.drawRect(bx, by, bx + cellSize-1, by + cellSize-1, paint);
+			}
+			
+			
 		}
 	}
 	
@@ -508,18 +551,11 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		for(int i=0;i < gameObjects.size();i++)
 		{
 			GameObject gameObject = gameObjects.get(i);
-			gameObject.draw(canvas, paint);
+			if(!gameObject.isFinished())
+			{
+				gameObject.draw(canvas, paint);				
+			}
 		}
-	}
-	
-	private void drawButton(Canvas canvas, Rect rect, int color){
-		paint.setStyle(Style.FILL);
-		paint.setColor(color);
-		canvas.drawRect(rect, paint);
-		
-		paint.setStyle(Style.STROKE);
-		paint.setColor(0xffffffff);
-		canvas.drawRect(rect, paint);
 	}
 	
 	public void surfaceChanged(SurfaceHolder holder, int format, int width,
@@ -527,7 +563,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	}
 
 	public void surfaceCreated(SurfaceHolder holder) {
-		// TODO Auto-generated method stub
 		initViewParams();
 		paintThread.start();
 	}
