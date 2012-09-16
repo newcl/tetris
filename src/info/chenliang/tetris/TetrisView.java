@@ -16,23 +16,23 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 
-public class TetrisView extends SurfaceView implements Runnable, Callback{
+public class TetrisView extends SurfaceView implements Callback{
 
 	private Paint paint;
-	private Thread paintThread;
+	
 	private SurfaceHolder surfaceHolder;
 	private BlockContainer blockContainer;
 	private BlockGenerator blockGenerator;
-	private boolean paused;
+	
 	
 	private BlockControlAction currentAction;
 
-	private final static int REFRESH_INVERVAL = 30;
+	
 	
 	private int testBlockDownInterval;
 	private int testBlockDownTime;
 	
-	private long lastTickTime;
+	
 	
 	private int cellSize;
 	
@@ -69,7 +69,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		this.blockContainer = blockContainer;
 		this.blockGenerator = blockGenerator;
 		
-		paintThread = new Thread(this);
 		surfaceHolder = getHolder();
 		surfaceHolder.addCallback(this);
 		testBlockDownInterval = 1000;
@@ -135,7 +134,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		return r == 0 ? -1 : 1;
 	}
 	
-	private void gameTick(int timeElapsed){
+	public void gameTick(int timeElapsed){
 		if(!paused)
 		{
 			testBlockDownTime += timeElapsed;
@@ -325,7 +324,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		return block;
 	}
 	
-	private void gameInit()
+	public void gameInit()
 	{
 		currentBlock = generateNextBlock();
 		nextBlock = generateNextBlock();
@@ -373,30 +372,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		shadowBlock.setColor(0xff000000|128<<16|128<<8|128);
 	}
 	
-	public void run() {
-		// TODO Auto-generated method stub
-		lastTickTime = System.currentTimeMillis();
-		
-		gameInit();
-		while(true)
-		{
-			long currentTime = System.currentTimeMillis();
-			int timeElapsed = (int)(currentTime - lastTickTime);
-			
-			gameTick(timeElapsed);
-			gameDraw();
-			removeDeadGameObjects();
-			
-			lastTickTime = currentTime;
-			try {
-				Thread.sleep(REFRESH_INVERVAL);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
-	
 	private void removeDeadGameObjects()
 	{
 		for(int i=gameObjects.size()-1;i >= 0;i--)
@@ -435,7 +410,7 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 		canvas.drawRect(x, y, x + cellSize-1, y + cellSize-1, paint);
 	}
 	
-	private void gameDraw(){
+	public void gameDraw(){
 		
 		Canvas canvas = null;
 		try {
@@ -580,7 +555,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 
 	public void surfaceCreated(SurfaceHolder holder) {
 		initViewParams();
-		paintThread.start();
 	}
 
 	public void surfaceDestroyed(SurfaceHolder holder) {
@@ -611,14 +585,6 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 	public void start()
 	{
 		
-	}
-	
-	public boolean isPaused() {
-		return paused;
-	}
-
-	public void setPaused(boolean paused) {
-		this.paused = paused;
 	}
 	
 	public void hold()
@@ -652,5 +618,17 @@ public class TetrisView extends SurfaceView implements Runnable, Callback{
 			
 			hasHeldInThisTurn = true;
 		}
+	}
+
+	public Block getCurrentBlock() {
+		return currentBlock;
+	}
+
+	public Block getNextBlock() {
+		return nextBlock;
+	}
+
+	public Block getHoldBlock() {
+		return holdBlock;
 	}
 }
