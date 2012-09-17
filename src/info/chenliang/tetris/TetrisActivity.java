@@ -15,12 +15,10 @@ import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
 import android.view.View.OnTouchListener;
 
-public class TetrisActivity extends Activity {
+public class TetrisActivity extends Activity implements OnTouchListener {
 
 	private TetrisView tetrisView;
 	private Window window;
-	private BlockContainer blockContainer;
-	private BlockGenerator blockGenerator;
 	
 	private RelativeLayout relativeLayout;
 	
@@ -33,13 +31,9 @@ public class TetrisActivity extends Activity {
 	private final int ID_PAUSE_BUTTON = 3006;
 	private final int ID_HOLD_BUTTON = 3007;
 	
-	private Thread gameThread;
-	private long lastTickTime;
-	private boolean paused;
-	
-	private final static int REFRESH_INVERVAL = 30;
-	
 	private Tetris tetris;
+	
+	Button pauseButton;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -47,39 +41,8 @@ public class TetrisActivity extends Activity {
         
         setFullScreen();
         
-        blockContainer = new BlockContainer(20, 10);
-        blockGenerator = new BlockGenerator();
-        
-        initUi();
-        
+        initUi();   
     }
-    
-    public void run() {
-		// TODO Auto-generated method stub
-		lastTickTime = System.currentTimeMillis();
-		
-		tetrisView.gameInit();
-		while(true)
-		{
-			long currentTime = System.currentTimeMillis();
-			int timeElapsed = (int)(currentTime - lastTickTime);
-			
-			if(!paused)
-			{
-				tetrisView.gameTick(timeElapsed);
-				tetrisView.gameDraw();
-								
-			}
-			
-			lastTickTime = currentTime;
-			try {
-				Thread.sleep(REFRESH_INVERVAL);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-	}
     
     private void setFullScreen()
     {
@@ -89,56 +52,51 @@ public class TetrisActivity extends Activity {
         window.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
     
+    private Button createButton(Context context, int id, String text, OnTouchListener onTouchListener)
+    {
+    	Button button = new Button(context);
+    	button.setId(id);
+    	button.setText(text);
+    	button.setOnTouchListener(onTouchListener);
+    	
+    	return button;
+    }
+    
     private void initUi()
     {
     	relativeLayout = new RelativeLayout(this);
+    	
         Context context = relativeLayout.getContext();
-        tetrisView = new TetrisView(context, blockContainer, blockGenerator);
+        tetrisView = new TetrisView(context);
         tetrisView.setId(ID_VIEW);
         
         relativeLayout.addView(tetrisView);
         
-        
-        Button leftButton = new Button(context);
-        leftButton.setId(ID_LEFT_BUTTON);
-        leftButton.setText("  <-  ");
-        leftButton.setOnTouchListener(new BlockController(tetrisView, BlockControlAction.MOVE_LEFT));
+        Button leftButton = createButton(context, ID_LEFT_BUTTON, "  <-  ", this);
         relativeLayout.addView(leftButton);
         
-        Button rightButton = new Button(context);
-        rightButton.setText("  ->  ");
-        rightButton.setId(ID_RIGHT_BUTTON);
-        rightButton.setOnTouchListener(new BlockController(tetrisView, BlockControlAction.MOVE_RIGHT));
+        Button rightButton = createButton(context, ID_RIGHT_BUTTON, "  ->  ", this);
         relativeLayout.addView(rightButton);
         
-        Button downButton = new Button(context);
-        downButton.setText("down");
-        downButton.setId(ID_DOWN_BUTTON);
-        downButton.setOnTouchListener(new BlockController(tetrisView, BlockControlAction.MOVE_DOWN));
+        Button downButton = createButton(context, ID_DOWN_BUTTON, " Down ", this);
         relativeLayout.addView(downButton);
         
-        Button transformButton = new Button(context);
-        transformButton.setText("  _|_  ");
-        transformButton.setId(ID_TRANSFORM_BUTTON);
-        transformButton.setOnTouchListener(new BlockController(tetrisView, BlockControlAction.TRANSFORM));
+        Button transformButton = createButton(context, ID_TRANSFORM_BUTTON, "  _|_  ", this);
         relativeLayout.addView(transformButton);
         
-        final Button pauseButton = new Button(context);
-        pauseButton.setText("Pause");
-        pauseButton.setId(ID_PAUSE_BUTTON);
-        pauseButton.setOnTouchListener(new OnTouchListener() {
+        pauseButton = createButton(context, ID_PAUSE_BUTTON, "Pause", new OnTouchListener() {
 			
 			public boolean onTouch(View v, MotionEvent event) {
 				int action = event.getAction();
 				if(action == MotionEvent.ACTION_UP){
-					if(paused)
+					if(tetris.isPaused())
 					{
-						paused = false;
+						tetris.setPaused(false);
 						pauseButton.setText("Pause");
 					}
 					else
 					{
-						paused = true;
+						tetris.setPaused(true);
 						pauseButton.setText("Start");
 					}
 				}
@@ -148,17 +106,14 @@ public class TetrisActivity extends Activity {
 		});
         relativeLayout.addView(pauseButton);
         
-        final Button holdButton = new Button(context);
-        holdButton.setText("Hold");
-        holdButton.setId(ID_HOLD_BUTTON);
-        holdButton.setOnTouchListener(new OnTouchListener() {
+        final Button holdButton = createButton(context, ID_HOLD_BUTTON, "Hold", new OnTouchListener() {
 			
 			public boolean onTouch(View v, MotionEvent event) {
 				int action = event.getAction();
 				if(action == MotionEvent.ACTION_UP){
-					if(!paused)
+					if(!tetris.isPaused())
 					{
-						tetrisView.hold();						
+						tetris.hold();						
 					}
 				}
 				
@@ -167,11 +122,7 @@ public class TetrisActivity extends Activity {
 		});
         relativeLayout.addView(holdButton);
         
-        
-        Button instantDownButton = new Button(context);
-        instantDownButton.setText("|________________|");
-        instantDownButton.setId(ID_INSTANT_DOWN_BUTTON);
-        instantDownButton.setOnTouchListener(new BlockController(tetrisView, BlockControlAction.INSTANT_DOWN));
+        Button instantDownButton = createButton(context, ID_INSTANT_DOWN_BUTTON, "|_____________|", this);
         relativeLayout.addView(instantDownButton);
         
         LayoutParams tetrisLayoutParam = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -216,6 +167,63 @@ public class TetrisActivity extends Activity {
         
         setContentView(relativeLayout);
     }
+    
+    public boolean onTouch(View v, MotionEvent event) {
+    	if(tetris == null)
+    	{
+    		return false;
+    	}
+    	
+		int action = event.getAction();
+		if(action == MotionEvent.ACTION_DOWN)
+		{
+			if(v.getId() == ID_DOWN_BUTTON)
+			{
+				tetris.setCurrentAction(BlockControlAction.MOVE_DOWN);
+			}
+			else if(v.getId() == ID_LEFT_BUTTON)
+			{
+				tetris.setCurrentAction(BlockControlAction.MOVE_LEFT);
+			}
+			else if(v.getId() == ID_RIGHT_BUTTON)
+			{
+				tetris.setCurrentAction(BlockControlAction.MOVE_RIGHT);
+			}
+			else if(v.getId() == ID_TRANSFORM_BUTTON)
+			{
+				tetris.setCurrentAction(BlockControlAction.TRANSFORM);
+			}
+			else if(v.getId() == ID_INSTANT_DOWN_BUTTON)
+			{
+				tetris.setCurrentAction(BlockControlAction.INSTANT_DOWN);
+			}
+			else if(v.getId() == ID_HOLD_BUTTON)
+			{
+				if(!tetris.isPaused())
+				{
+					tetris.hold();
+				}
+			}
+			else if(v.getId() == ID_PAUSE_BUTTON)
+			{
+				tetris.setPaused(true);
+			}
+		
+			return true;
+		}else if(action == MotionEvent.ACTION_UP){
+			if(v.getId() == ID_DOWN_BUTTON
+			|| v.getId() == ID_LEFT_BUTTON
+			|| v.getId() == ID_RIGHT_BUTTON 
+			|| v.getId() == ID_TRANSFORM_BUTTON
+			|| v.getId() == ID_INSTANT_DOWN_BUTTON)
+			{
+				tetris.setCurrentAction(BlockControlAction.NONE);
+				return true;
+			}
+		}
+			
+		return false;
+	}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -225,68 +233,74 @@ public class TetrisActivity extends Activity {
 
 	@Override
 	protected void onPause() {
-		// TODO Auto-generated method stub
 		super.onPause();
-		
-		paused = true;
+		tetris.setPaused(true);
 	}
 
 	@Override
 	protected void onResume() {
-		// TODO Auto-generated method stub
+		
 		super.onResume();
+		if(tetris == null)
+		{
+			tetris = new Tetris(tetrisView, loadGameData());
+			tetris.startGame();
+		}
 	}
 
 	@Override
 	protected void onStop() {
-		// TODO Auto-generated method stub
 		super.onStop();
-	}
-
-	@Override
-	protected void onRestart() {
-		// TODO Auto-generated method stub
-		super.onRestart();
-		
-		loadGameState();
+		if(tetris != null)
+		{
+			tetris.stopGame();
+			saveGameData(tetris.toGameData());
+			tetris = null;
+		}
 	}
 	
-	private void loadGameState()
+	private void saveGameData(GameData gameData)
 	{
 		
 	}
 
 	@Override
+	protected void onRestart() {
+		super.onRestart();
+	}
+	
+	private GameData loadGameData()
+	{
+		return null;
+	}
+
+	@Override
 	protected void onStart() {
-		// TODO Auto-generated method stub
+		
 		super.onStart();
 	}
 
 	@Override
 	public void finish() {
-		// TODO Auto-generated method stub
+		
 		super.finish();
 	}
-	
-	
 
 	@Override
 	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
+		
 		super.onRestoreInstanceState(savedInstanceState);
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		// TODO Auto-generated method stub
-		super.onSaveInstanceState(outState);
 		
-		outState.putByte("testKey", (byte)100);
+		super.onSaveInstanceState(outState);
 	}
 
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
+		
 		super.onDestroy();
 	}
 	

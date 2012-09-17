@@ -1,8 +1,5 @@
 package info.chenliang.tetris;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Paint.Style;
 
 public class RectangleShape extends Shape{
 	private float width, height;
@@ -14,12 +11,10 @@ public class RectangleShape extends Shape{
 	}
 
 	@Override
-	public void draw(Canvas canvas, Paint paint, float x, float y) {
-		canvas.drawRect(x-width/2, y-height/2,x+width/2,y+height/2, paint);
+	public void draw(GameCanvas canvas, float x, float y) {
+		canvas.fillRect(x-width/2, y-height/2,x+width/2,y+height/2, 0xffff0000);
 		
-		paint.setStyle(Style.STROKE);
-		paint.setColor(0);
-		canvas.drawRect(x-width/2, y-height/2,x+width/2,y+height/2, paint);
+		canvas.drawRect(x-width/2, y-height/2,x+width/2,y+height/2, 0);
 	}
 
 }

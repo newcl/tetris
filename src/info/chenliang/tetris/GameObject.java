@@ -1,10 +1,7 @@
 package info.chenliang.tetris;
 
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Paint.Style;
 
-public class GameObject implements Tickable, Drawable {
+public class GameObject implements Tickable{
 	
 	private float x, y;
 	
@@ -162,15 +159,8 @@ public class GameObject implements Tickable, Drawable {
 		this.color = color;
 	}
 	
-	public void draw(Canvas canvas, Paint paint) {
-		paint.setStyle(Style.FILL);
-		paint.setColor(color);
-		
-		canvas.save();
-		canvas.translate(x, y);
-		canvas.rotate(angle);
-		shape.draw(canvas, paint, 0, 0);
-		canvas.restore();
+	public void draw(GameCanvas canvas) {
+		shape.draw(canvas, 0, 0);
 	}
 	
 }

@@ -1,5 +1,627 @@
 package info.chenliang.tetris;
 
-public class Tetris {
+import java.util.ArrayList;
+import java.util.List;
 
+import android.view.KeyEvent;
+
+public class Tetris implements Runnable{
+	private final static int REFRESH_INVERVAL = 30;
+	
+	private Thread gameThread;
+	private long lastTickTime;
+	private boolean paused;
+	
+	private BlockControlAction currentAction;
+
+	private int testBlockDownInterval;
+	private int testBlockDownTime;
+	
+	private int cellSize;
+	
+	private Block currentBlock;
+	private Block nextBlock;
+	
+	private int inputCheckInterval = 80;
+	private long lastActionTime;
+	private BlockControlAction lastAction = BlockControlAction.NONE;
+	
+	private Block shadowBlock;
+	
+	private BlockContainer blockContainer;
+	private BlockGenerator blockGenerator;
+	
+	private float gravity = 0.5f;
+	private float angleSpeed = 33;
+	
+	private int leftMarginWidth = 30, topMarginHeight=30;
+	private int rightMarginWidth=120, bottomMarginHeight=30;
+	
+	private int containerWidth;
+	private int containerHeight;
+	
+	private int currentScore, targetScore;
+	
+	private Block holdBlock;
+	
+	private boolean hasHeldInThisTurn;
+	
+	private List<GameObject> gameObjects; 
+	
+	private GameCanvas gameCanvas;
+
+	private boolean running;
+	
+	public Tetris(GameCanvas gameCanvas)
+	{
+		this.gameCanvas = gameCanvas;
+	}
+	
+	public Tetris(GameCanvas gameCanvas, GameData gameData)
+	{
+		this.gameCanvas = gameCanvas;
+		if(gameData != null)
+		{
+			initGameData(gameData);
+		}
+	}
+	
+	private void initGameData(GameData gameData)
+	{
+		
+	}
+	
+	public void gameInit()
+	{
+		blockContainer = new BlockContainer(20, 10);
+		blockGenerator = new BlockGenerator();
+		gameObjects = new ArrayList<GameObject>();
+		currentBlock = generateNextBlock();
+		nextBlock = generateNextBlock();
+		Assert.judge(findPositionForBlock(currentBlock), "Unabled to init position for the 1st block.");
+		updateShaowBlock();
+		running = true;
+		lastTickTime = System.currentTimeMillis();
+		currentAction = BlockControlAction.NONE;
+		testBlockDownInterval = 800;
+		testBlockDownTime = 0;
+		while(!gameCanvas.isReady())
+		{
+		}
+		
+		initViewParams();
+	}
+	
+	public void run() {
+		gameInit();
+		while(running)
+		{
+			long currentTime = System.currentTimeMillis();
+			int timeElapsed = (int)(currentTime - lastTickTime);
+
+			gameTick(timeElapsed);
+			gameDraw();				
+			removeDeadGameObjects();
+			
+			lastTickTime = currentTime;
+			synchronized (this) {
+				try {
+					this.wait(REFRESH_INVERVAL);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+	
+	public void gameTick(int timeElapsed){
+		if(!paused)
+		{
+			testBlockDownTime += timeElapsed;
+			
+			boolean inputDown = false;
+			
+			if(shouldCheckInputAction())
+			{
+				switch(currentAction){
+				case TRANSFORM:
+					if(blockContainer.canRotate(currentBlock)){
+						currentBlock.rotate();
+					}
+					break;
+				case MOVE_LEFT:
+					if(blockContainer.canMoveLeft(currentBlock)){
+						currentBlock.translate(-2, 0);
+					}
+					break;
+				case MOVE_RIGHT:
+					if(blockContainer.canMoveRight(currentBlock)){
+						currentBlock.translate(2, 0);
+					}
+					break;
+				case NONE:
+					break;
+				case MOVE_DOWN:
+					inputDown = true;
+					break;
+				case INSTANT_DOWN:
+					while(blockContainer.canMoveDown(currentBlock))
+					{
+						currentBlock.translate(0, 2);
+					}
+					
+					fixCurrentBlock();
+					break;
+				default:
+					break;
+				}	
+				
+				if(currentAction != BlockControlAction.NONE)
+				{
+					lastActionTime = System.currentTimeMillis();
+					lastAction = currentAction;
+				}
+			}
+			
+			
+			boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
+			if(testDown){
+				if(blockContainer.canMoveDown(currentBlock)){
+					currentBlock.translate(0, 2);
+				}else{
+					fixCurrentBlock();
+				}				
+			}
+			
+			if(blockContainer.isFullRowDetected())
+			{
+				List<BlockContainerRow> fullRows = blockContainer.getFullRows();
+				targetScore = targetScore + calculateScore(fullRows.size());
+				addRemoveFullLineEffect(fullRows);
+				blockContainer.removeFullRows();		
+			}
+			
+			if(testBlockDownTime >= testBlockDownInterval)
+			{
+				testBlockDownTime -= testBlockDownInterval;
+			}
+			
+			updateShaowBlock();
+			
+			tickGameObjects(timeElapsed);
+			
+			tickScore();
+		}
+	}
+	
+	public void gameDraw(){
+		boolean success = gameCanvas.startDraw();
+		if(success)
+		{
+			int screenWidth = gameCanvas.getWidth();
+			int screenHeight = gameCanvas.getHeight();
+			
+			int xMargin = leftMarginWidth;
+			int yMargin = topMarginHeight;
+			
+			gameCanvas.fillRect(0, 0, screenWidth, screenHeight, 0xff000000);
+
+			gameCanvas.drawRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight, 0xffffffff);
+			//gameCanvas.clipRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight);
+			
+			for(int row=0; row < blockContainer.getNumRows(); row++){
+				BlockContainerRow containerRow = blockContainer.getRow(row);
+				for(int col=0; col < blockContainer.getNumCols(); col++){
+					BlockContainerCell cell = containerRow.getColumn(col);
+					if(cell.getStatus() == BlockContainerCellStatus.OCCUPIED){
+						drawBlockCell(col, row, cell.getColor());
+					}
+				}
+			}
+			
+			drawBlock(shadowBlock);
+			drawBlock(currentBlock);
+			
+			drawGameObjects();
+			
+			//gameCanvas.clipRect(0, 0, screenWidth, screenHeight);
+			drawInfo();
+			
+			if(paused)
+			{
+				gameCanvas.drawText("Paused", leftMarginWidth + containerWidth/2, topMarginHeight+containerHeight/2, 0xffffffff, GameCanvas.ALIGN_CENTER);
+			}
+			
+			gameCanvas.endDraw();
+		}
+	}
+	
+	private void drawBlock(Block block){
+		BlockCell[] cells = block.getCells();
+		for (int i = 0; i < cells.length; i++) {
+			BlockCell cell = cells[i];
+			
+			Assert.judge((block.getX() + cell.x) % 2 == 0, "block position not right, should be even.");
+			Assert.judge((block.getY() + cell.y) % 2 == 0, "block position not right, should be even.");
+			int cellX = (block.getX() + cell.x) / 2;
+			int cellY = (block.getY() + cell.y) / 2;
+			drawBlockCell(cellX, cellY, block.getColor());
+		}
+	}
+	
+	private void drawBlockCell(int cellX, int cellY, int color){
+		int x = leftMarginWidth+ cellX*cellSize;
+		int y = topMarginHeight+ cellY*cellSize;
+		
+		gameCanvas.fillRect(x, y, x + cellSize, y + cellSize, color);
+		gameCanvas.drawRect(x, y, x + cellSize-1, y + cellSize-1, 0xffffffff);
+	}
+	
+	private void drawInfo()
+	{
+		int yOffset = topMarginHeight;
+		int xOffset = leftMarginWidth + containerWidth;
+
+		int fontHeight = gameCanvas.getFontHeight();
+		gameCanvas.drawText("Next", xOffset + 8, yOffset + fontHeight, 0xffffffff, GameCanvas.ALIGN_LEFT);
+		
+		yOffset += fontHeight + 4;
+		
+		drawBlockInUi(nextBlock, xOffset + rightMarginWidth/2, yOffset + cellSize * 2);
+		
+		yOffset += cellSize * 4 + 4;
+		
+		gameCanvas.drawText("Hold", xOffset + 8, yOffset + fontHeight, 0xffffffff, GameCanvas.ALIGN_LEFT);
+		
+		yOffset += fontHeight + 4;
+		
+		drawBlockInUi(holdBlock, xOffset + rightMarginWidth/2, yOffset + cellSize * 2);
+		
+		yOffset += cellSize * 4 + 4;
+		gameCanvas.drawText("Score:" + currentScore, xOffset + 8, yOffset + fontHeight, 0xffffffff, GameCanvas.ALIGN_LEFT);
+	}
+	
+	private void drawBlockInUi(Block block, int x, int y)
+	{
+		if(block != null)
+		{
+			Vector2d size = block.getSize();
+			BlockCell[] cells = block.getCells();
+			for(int i=0; i < cells.length; i++)
+			{
+				float cx = (cells[i].x - block.minX)/2 - size.getX()/2;
+				float cy = (cells[i].y - block.minY)/2 - size.getY()/2;
+				
+				float bx = x + cx*cellSize;
+				float by = y + cy*cellSize;
+				
+				gameCanvas.fillRect(bx, by, bx + cellSize, by + cellSize, block.getColor());
+				gameCanvas.drawRect(bx, by, bx + cellSize-1, by + cellSize-1, 0xffffffff);
+			}
+		}
+	}
+	
+	private void drawGameObjects()
+	{
+		for(int i=0;i < gameObjects.size();i++)
+		{
+			GameObject gameObject = gameObjects.get(i);
+			if(!gameObject.isFinished())
+			{
+				gameObject.draw(gameCanvas);				
+			}
+		}
+	}
+	
+	public boolean isPaused() {
+		return paused;
+	}
+
+	public void setPaused(boolean paused) {
+		this.paused = paused;
+	}
+	
+	private Block generateNextBlock()
+	{
+		Block block = blockGenerator.generate();
+		return block;
+	}
+	
+	private boolean findPositionForBlock(Block block)
+	{
+		int x = blockContainer.getNumCols();
+		int y = -block.getMinY();
+		
+		if(block.isOddX())
+		{
+			x += 1;
+		}
+		
+		if((y + block.getMaxY()) % 2 != 0)
+		{
+			y += 1;
+		}
+		
+		block.setX(x);
+		block.setY(y);
+		boolean validPositionFound = false;
+		while(block.getY() + block.getMaxY() > 0)
+		{
+			if(blockContainer.collideWithContainer(block))
+			{
+				block.setY(block.getY() - 2);
+			}
+			else
+			{
+				validPositionFound = true;
+				break;
+			}
+		}
+		
+		return validPositionFound;
+	}
+	
+	public void hold()
+	{
+		
+		if(hasHeldInThisTurn)
+		{
+			
+		}
+		else
+		{
+			if(holdBlock == null)
+			{
+				holdBlock = currentBlock;
+				currentBlock = blockGenerator.generate();
+			}
+			else
+			{
+				Block temp = currentBlock;
+				currentBlock = holdBlock;
+				holdBlock = temp;	
+				currentBlock.setX(holdBlock.getX());
+				currentBlock.setY(holdBlock.getY());
+			}
+			
+			boolean found = findPositionForBlock(currentBlock);
+			if(!found)
+			{
+				blockContainer.reset();
+			}
+			
+			hasHeldInThisTurn = true;
+		}
+	}
+	
+	private void initViewParams(){
+		final int screenWidth = gameCanvas.getWidth();
+		final int screenHeight = gameCanvas.getHeight();
+		
+		final int numCols = blockContainer.getNumCols();
+		final int numRows = blockContainer.getNumRows();
+		
+		containerWidth = screenWidth - leftMarginWidth - rightMarginWidth;
+		containerHeight = screenHeight - topMarginHeight - bottomMarginHeight;
+		
+		int xSize = containerWidth / numCols;
+		int ySize = containerHeight / numRows;
+		
+		cellSize = Math.min(xSize, ySize);
+		
+		containerWidth = cellSize * numCols;
+		containerHeight = cellSize * numRows;
+		
+		topMarginHeight = bottomMarginHeight = (screenHeight - containerHeight) / 2;
+		rightMarginWidth = screenWidth - leftMarginWidth - containerWidth;
+	}
+
+	public BlockControlAction translateKeyToAction(int keyCode){
+		BlockControlAction action = BlockControlAction.NONE;
+		
+		if(keyCode == KeyEvent.KEYCODE_DPAD_UP){
+			action = BlockControlAction.TRANSFORM;
+		}else if(keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
+			action = BlockControlAction.MOVE_DOWN;
+		}else if(keyCode == KeyEvent.KEYCODE_DPAD_LEFT){
+			action = BlockControlAction.MOVE_LEFT;
+		}else if(keyCode == KeyEvent.KEYCODE_DPAD_RIGHT){
+			action = BlockControlAction.MOVE_RIGHT;
+		}else if(keyCode == KeyEvent.KEYCODE_SPACE){
+			action = BlockControlAction.INSTANT_DOWN;
+		}
+		
+		return action;
+	}
+
+	private boolean shouldCheckInputAction()
+	{
+		return currentAction != lastAction || System.currentTimeMillis() - lastActionTime >= inputCheckInterval;
+	}
+	
+	private float floatRandom(int scalar)
+	{
+		return (float)(Math.random()*scalar)*randomSign();
+	}
+	
+	private float randomSign()
+	{
+		int r = (int)(Math.random()*2);
+		return r == 0 ? -1 : 1;
+	}
+	
+	
+	
+	private int calculateScore(int numFullRows)
+	{
+		return numFullRows * 500;
+	}
+	
+	private void tickScore()
+	{
+		if(targetScore > currentScore)
+		{
+			int deltaScore = (targetScore - currentScore) / 2;
+			if(deltaScore <= 1)
+			{
+				currentScore = targetScore;
+			}
+			else
+			{
+				currentScore += deltaScore;
+			}
+		}
+	}
+	
+	private void addRemoveFullLineEffect(List<BlockContainerRow> fullRows)
+	{
+		for(int i=0;i < fullRows.size() ;i++)
+		{
+			BlockContainerRow containerRow = fullRows.get(i);
+			int xOffset = leftMarginWidth;
+			int yOffset = topMarginHeight + containerRow.getRow()*cellSize;
+			for(int col=0; col < blockContainer.getNumCols(); col++)
+			{
+				BlockContainerCell containerCell = containerRow.getColumn(col);
+				
+				GameObject gameObject = null;
+				
+				gameObject = new GameObject(xOffset+cellSize/4, yOffset+cellSize/4, containerCell.getColor());
+				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
+				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
+				gameObjects.add(gameObject);
+				
+				gameObject = new GameObject(xOffset+cellSize/2, yOffset+cellSize/4, containerCell.getColor());
+				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
+				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
+				gameObjects.add(gameObject);
+				
+				gameObject = new GameObject(xOffset+cellSize/4, yOffset+cellSize/2, containerCell.getColor());
+				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
+				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
+				gameObjects.add(gameObject);
+				
+				gameObject = new GameObject(xOffset+cellSize/2, yOffset+cellSize/2, containerCell.getColor());
+				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
+				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
+				gameObjects.add(gameObject);
+				
+				
+				xOffset += cellSize;
+			}
+			
+		}
+	}
+	
+	private void tickGameObjects(int timeElapsed)
+	{
+		for(int i=0;i < gameObjects.size();i++)
+		{
+			GameObject gameObject = gameObjects.get(i);
+			gameObject.tick(timeElapsed);
+		}
+	}
+	
+	
+	private boolean fixCurrentBlock()
+	{
+		blockContainer.fixBlock(currentBlock);
+		currentBlock = nextBlock;
+		boolean canPutNextBlockInContainer = findPositionForBlock(currentBlock);
+		if(canPutNextBlockInContainer)
+		{
+			nextBlock = generateNextBlock();
+			currentAction = BlockControlAction.NONE;
+			testBlockDownTime = 0;
+			
+			updateShaowBlock();	
+		}
+		else
+		{
+			clearScore();
+			blockContainer.reset();
+		}
+		hasHeldInThisTurn = false;
+		return canPutNextBlockInContainer;
+	}
+	
+	private void clearScore()
+	{
+		currentScore = 0;
+		targetScore = 0;
+	}
+														
+	private void updateShaowBlock()
+	{
+		shadowBlock = currentBlock.duplicate();
+		shadowBlock.setColor(0xff000000|128<<16|128<<8|128);
+		while(blockContainer.canMoveDown(shadowBlock))
+		{
+			shadowBlock.translate(0, 2);
+		}
+	}
+	
+	private void removeDeadGameObjects()
+	{
+		for(int i=gameObjects.size()-1;i >= 0;i--)
+		{
+			GameObject gameObject = gameObjects.get(i);
+			if(gameObject.isFinished())
+			{
+				gameObjects.remove(i);
+			}
+		}
+	}
+
+	public BlockControlAction getCurrentAction() {
+		return currentAction;
+	}
+
+	public void setCurrentAction(BlockControlAction currentAction) {
+		if(!isPaused())
+		{
+			this.currentAction = currentAction;
+			if(this.currentAction == BlockControlAction.NONE)
+			{
+				lastActionTime = 0;
+				lastAction = BlockControlAction.NONE;
+			}			
+		}
+	}
+
+	public Block getCurrentBlock() {
+		return currentBlock;
+	}
+
+	public Block getNextBlock() {
+		return nextBlock;
+	}
+	
+	public Block getHoldBlock() {
+		return holdBlock;
+	}
+	
+	public GameData toGameData()
+	{
+		return null;
+	}
+	
+	public void startGame()
+	{
+		if(gameThread == null){
+			gameThread = new Thread(this);
+			gameThread.start();
+		}
+	}
+	
+	public void stopGame()
+	{
+		running = false;
+		synchronized (this) {
+			notifyAll();
+		}
+		
+		gameThread = null;
+	}
+	
 }
