@@ -1,11 +1,18 @@
 package info.chenliang.tetris;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.view.KeyEvent;
 
 public class Tetris implements Runnable{
+	private static int ROW_COUNT = 20;
+	private static int COLUMN_COUNT = 10;
+	
 	private final static int REFRESH_INVERVAL = 30;
 	
 	private Thread gameThread;
@@ -52,6 +59,11 @@ public class Tetris implements Runnable{
 
 	private boolean running;
 	
+	private static final int STATE_NORMAL = 0;
+	private static final int STATE_BLOCK_INSTANT_DOWN = 1;
+	
+	private int state;
+	
 	public Tetris(GameCanvas gameCanvas)
 	{
 		this.gameCanvas = gameCanvas;
@@ -73,7 +85,9 @@ public class Tetris implements Runnable{
 	
 	public void gameInit()
 	{
-		blockContainer = new BlockContainer(20, 10);
+		state = STATE_NORMAL;
+		
+		blockContainer = new BlockContainer(ROW_COUNT, COLUMN_COUNT);
 		blockGenerator = new BlockGenerator();
 		gameObjects = new ArrayList<GameObject>();
 		currentBlock = generateNextBlock();
@@ -117,80 +131,104 @@ public class Tetris implements Runnable{
 	public void gameTick(int timeElapsed){
 		if(!paused)
 		{
-			testBlockDownTime += timeElapsed;
-			
-			boolean inputDown = false;
-			
-			if(shouldCheckInputAction())
+			if(state == STATE_NORMAL)
 			{
-				switch(currentAction){
-				case TRANSFORM:
-					if(blockContainer.canRotate(currentBlock)){
-						currentBlock.rotate();
-					}
-					break;
-				case MOVE_LEFT:
-					if(blockContainer.canMoveLeft(currentBlock)){
-						currentBlock.translate(-2, 0);
-					}
-					break;
-				case MOVE_RIGHT:
-					if(blockContainer.canMoveRight(currentBlock)){
-						currentBlock.translate(2, 0);
-					}
-					break;
-				case NONE:
-					break;
-				case MOVE_DOWN:
-					inputDown = true;
-					break;
-				case INSTANT_DOWN:
-					while(blockContainer.canMoveDown(currentBlock))
-					{
-						currentBlock.translate(0, 2);
-					}
-					
-					fixCurrentBlock();
-					break;
-				default:
-					break;
-				}	
+				testBlockDownTime += timeElapsed;
 				
-				if(currentAction != BlockControlAction.NONE)
+				boolean inputDown = false;
+				
+				if(shouldCheckInputAction())
 				{
-					lastActionTime = System.currentTimeMillis();
-					lastAction = currentAction;
+					switch(currentAction){
+					case TRANSFORM:
+						if(blockContainer.canRotate(currentBlock)){
+							currentBlock.rotate();
+						}
+						break;
+					case MOVE_LEFT:
+						if(blockContainer.canMoveLeft(currentBlock)){
+							currentBlock.translate(-2, 0);
+						}
+						break;
+					case MOVE_RIGHT:
+						if(blockContainer.canMoveRight(currentBlock)){
+							currentBlock.translate(2, 0);
+						}
+						break;
+					case NONE:
+						break;
+					case MOVE_DOWN:
+						inputDown = true;
+						break;
+					case INSTANT_DOWN:
+						state = STATE_BLOCK_INSTANT_DOWN;
+						break;
+					default:
+						break;
+					}	
+					
+					if(currentAction != BlockControlAction.NONE)
+					{
+						lastActionTime = System.currentTimeMillis();
+						lastAction = currentAction;
+					}
 				}
+				
+				
+				boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
+				if(testDown){
+					if(blockContainer.canMoveDown(currentBlock)){
+						currentBlock.translate(0, 2);
+					}else{
+						fixCurrentBlock();
+					}				
+				}
+				
+				if(blockContainer.isFullRowDetected())
+				{
+					List<BlockContainerRow> fullRows = blockContainer.getFullRows();
+					targetScore = targetScore + calculateScore(fullRows.size());
+					addRemoveFullLineEffect(fullRows);
+					blockContainer.removeFullRows();		
+				}
+				
+				if(testBlockDownTime >= testBlockDownInterval)
+				{
+					testBlockDownTime -= testBlockDownInterval;
+				}
+				
+				updateShaowBlock();
+				
+				tickScore();
 			}
-			
-			
-			boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
-			if(testDown){
-				if(blockContainer.canMoveDown(currentBlock)){
+			else if(state == STATE_BLOCK_INSTANT_DOWN)
+			{
+				while(blockContainer.canMoveDown(currentBlock))
+				{
 					currentBlock.translate(0, 2);
-				}else{
-					fixCurrentBlock();
-				}				
+				}
+				
+				fixCurrentBlock();
 			}
-			
-			if(blockContainer.isFullRowDetected())
-			{
-				List<BlockContainerRow> fullRows = blockContainer.getFullRows();
-				targetScore = targetScore + calculateScore(fullRows.size());
-				addRemoveFullLineEffect(fullRows);
-				blockContainer.removeFullRows();		
-			}
-			
-			if(testBlockDownTime >= testBlockDownInterval)
-			{
-				testBlockDownTime -= testBlockDownInterval;
-			}
-			
-			updateShaowBlock();
 			
 			tickGameObjects(timeElapsed);
-			
-			tickScore();
+		}
+	}
+	
+	private void drawContainerBackground()
+	{
+		int gray = compositeColor(128, 128, 128,150);
+		
+		for(int row=0;row < ROW_COUNT;row++)
+		{
+			int y = topMarginHeight+row*cellSize;
+			gameCanvas.fillRect(leftMarginWidth, y, leftMarginWidth+containerWidth, y+1, gray);
+		}
+		
+		for(int col=0;col < COLUMN_COUNT;col++)
+		{
+			int x = leftMarginWidth + col*cellSize;
+			gameCanvas.fillRect(x, topMarginHeight, x+1, topMarginHeight+containerHeight, gray);
 		}
 	}
 	
@@ -198,29 +236,35 @@ public class Tetris implements Runnable{
 		boolean success = gameCanvas.startDraw();
 		if(success)
 		{
+			Paint paint = gameCanvas.getPaint();
+			
 			int screenWidth = gameCanvas.getWidth();
 			int screenHeight = gameCanvas.getHeight();
 			
 			int xMargin = leftMarginWidth;
 			int yMargin = topMarginHeight;
 			
+			paint.setStrokeWidth(2);
 			gameCanvas.fillRect(0, 0, screenWidth, screenHeight, 0xff000000);
+			
+			paint.setStrokeWidth(1);
 
 			gameCanvas.drawRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight, 0xffffffff);
 			//gameCanvas.clipRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight);
+			drawContainerBackground();
 			
 			for(int row=0; row < blockContainer.getNumRows(); row++){
 				BlockContainerRow containerRow = blockContainer.getRow(row);
 				for(int col=0; col < blockContainer.getNumCols(); col++){
 					BlockContainerCell cell = containerRow.getColumn(col);
 					if(cell.getStatus() == BlockContainerCellStatus.OCCUPIED){
-						drawBlockCell(col, row, cell.getColor());
+						drawBlockCell(col, row, cell.getColor(), 0, 0);
 					}
 				}
 			}
 			
-			drawBlock(shadowBlock);
-			drawBlock(currentBlock);
+			drawBlock(shadowBlock, 0, 0);
+			drawBlock(currentBlock, 0, 0);
 			
 			drawGameObjects();
 			
@@ -236,7 +280,7 @@ public class Tetris implements Runnable{
 		}
 	}
 	
-	private void drawBlock(Block block){
+	private void drawBlock(Block block, float offsetX, float offsetY){
 		BlockCell[] cells = block.getCells();
 		for (int i = 0; i < cells.length; i++) {
 			BlockCell cell = cells[i];
@@ -245,13 +289,138 @@ public class Tetris implements Runnable{
 			Assert.judge((block.getY() + cell.y) % 2 == 0, "block position not right, should be even.");
 			int cellX = (block.getX() + cell.x) / 2;
 			int cellY = (block.getY() + cell.y) / 2;
-			drawBlockCell(cellX, cellY, block.getColor());
+			drawBlockCell(cellX, cellY, block.getColor(), offsetX, offsetY);
 		}
 	}
 	
-	private void drawBlockCell(int cellX, int cellY, int color){
-		int x = leftMarginWidth+ cellX*cellSize;
-		int y = topMarginHeight+ cellY*cellSize;
+	private Rect addEmptyRects(List<Rect> rects, int cellX, int cellY, float offsetX, float offsetY)
+	{
+		Rect rect = new Rect();
+		rect.left = (int)(leftMarginWidth+ cellX*cellSize + offsetX);
+		rect.top = (int)(topMarginHeight+ cellY*cellSize + offsetY);
+		rect.right = rect.left + cellSize+2;
+		rect.bottom = rect.top + cellSize+2;
+		
+		rects.add(rect);
+		
+		return rect;
+	}
+	
+	private void glowBlock(Block block)
+	{
+		float blockOffset = 3f;
+		drawBlock(block, -blockOffset, 0);
+		drawBlock(block, 0, -blockOffset);
+		drawBlock(block, +blockOffset, 0);
+		drawBlock(block, 0, +blockOffset);
+		
+		drawBlock(block, -blockOffset, -blockOffset);
+		drawBlock(block, +blockOffset, -blockOffset);
+		drawBlock(block, -blockOffset, +blockOffset);
+		drawBlock(block, +blockOffset, +blockOffset);
+		
+		float left = leftMarginWidth + (block.getX() + block.minX) / 2 * cellSize - blockOffset;
+		float right = leftMarginWidth + (block.getX() + block.maxX) / 2 * cellSize + blockOffset;
+		float top = topMarginHeight + (block.getY() + block.minY) / 2 * cellSize - blockOffset;
+		float bottom = topMarginHeight + (block.getY() + block.maxY) / 2 * cellSize + blockOffset;
+		
+		int blurSize = 3;
+		
+		int color = block.getColor();
+		int blockRed = (color & 0xff0000) >> 16;
+		int blockGreen = (color & 0xff00) >> 8;
+		int blockBlue = (color & 0xff0000);
+		
+		Map<String, String> cellMark = new HashMap<String, String>();
+		BlockCell[] clone = block.getCells(); 
+		for(int i=0; i < clone.length ;i ++)
+		{
+			cellMark.put(clone[i].x+""+clone[i].y, "");
+		}
+		
+		List<Rect> rects = new ArrayList<Rect>();
+		for(int x=block.minX; x < block.maxX; x+=2)
+		{
+			for(int y=block.minY; y < block.maxY;y+=2)
+			{
+				if(!cellMark.containsKey(x+""+y))
+				{
+					
+					int cellX = (block.getX() + x) / 2;
+					int cellY = (block.getY() + y) / 2;
+					
+					addEmptyRects(rects, cellX, cellY, -blockOffset, 0);
+					addEmptyRects(rects, cellX, cellY, 0, -blockOffset);
+					addEmptyRects(rects, cellX, cellY, +blockOffset, 0);
+					addEmptyRects(rects, cellX, cellY, 0, +blockOffset);
+					
+					addEmptyRects(rects, cellX, cellY, -blockOffset, -blockOffset);
+					addEmptyRects(rects, cellX, cellY, +blockOffset, -blockOffset);
+					addEmptyRects(rects, cellX, cellY, -blockOffset, +blockOffset);
+					addEmptyRects(rects, cellX, cellY, +blockOffset, +blockOffset);
+					
+				}
+			}
+		}
+		
+		for(int x=(int)left;x<=right;x++)
+		{
+			nextPixel:for(int y=(int)top;y <=bottom;y++)
+			{
+				for(Rect rect:rects)
+				{
+					if(rect.contains(x, y))
+					{
+						continue nextPixel;
+					}
+				}
+				
+				int blockColorCount = 0;
+				
+				int red = 0, green = 0, blue = 0;
+				if(y-1>=top)
+				{
+					blockColorCount ++;
+				}
+				
+				if(x - 1 >= left)
+				{
+					blockColorCount ++;
+				}
+				
+				if(x + 1 <= right)
+				{
+					blockColorCount ++;
+				}
+				
+				if(y + 1 <= top)
+				{
+					blockColorCount ++;
+				}
+				
+				red += blockColorCount*blockRed;
+				green+= blockColorCount*blockGreen;
+				blue += blockColorCount*blockBlue;
+				
+				red /= 9;
+				green /= 9;
+				blue /= 9;
+				
+				gameCanvas.fillRect(x, y, x+1, y+1, compositeColor(red, green, blue,0xff));
+			}
+		}
+		
+		drawBlock(block, 0, 0);
+	}
+	
+	private int compositeColor(int red, int green, int blue, int alpha)
+	{
+		return alpha<<24|red<<16|green<<8|blue;
+	}
+	
+	private void drawBlockCell(float cellX, float cellY, int color, float offsetX, float offsetY){
+		float x = leftMarginWidth+ cellX*cellSize + offsetX;
+		float y = topMarginHeight+ cellY*cellSize + offsetY;
 		
 		gameCanvas.fillRect(x, y, x + cellSize, y + cellSize, color);
 		gameCanvas.drawRect(x, y, x + cellSize-1, y + cellSize-1, 0xffffffff);
@@ -330,35 +499,22 @@ public class Tetris implements Runnable{
 	private boolean findPositionForBlock(Block block)
 	{
 		int x = blockContainer.getNumCols();
-		int y = -block.getMinY();
+		int y = -block.minY;
 		
 		if(block.isOddX())
 		{
 			x += 1;
 		}
 		
-		if((y + block.getMaxY()) % 2 != 0)
-		{
-			y += 1;
-		}
-		
 		block.setX(x);
 		block.setY(y);
-		boolean validPositionFound = false;
-		while(block.getY() + block.getMaxY() > 0)
+		
+		while(blockContainer.collideWithContainer(block))
 		{
-			if(blockContainer.collideWithContainer(block))
-			{
-				block.setY(block.getY() - 2);
-			}
-			else
-			{
-				validPositionFound = true;
-				break;
-			}
+			block.setY(block.getY() - 2);
 		}
 		
-		return validPositionFound;
+		return (block.getY() + block.maxY) / 2 > 0;
 	}
 	
 	public void hold()
@@ -475,6 +631,7 @@ public class Tetris implements Runnable{
 	
 	private void addRemoveFullLineEffect(List<BlockContainerRow> fullRows)
 	{
+		/*
 		for(int i=0;i < fullRows.size() ;i++)
 		{
 			BlockContainerRow containerRow = fullRows.get(i);
@@ -511,6 +668,7 @@ public class Tetris implements Runnable{
 			}
 			
 		}
+		*/
 	}
 	
 	private void tickGameObjects(int timeElapsed)

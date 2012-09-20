@@ -2,6 +2,7 @@ package info.chenliang.tetris;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.DrawFilter;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.FontMetrics;
@@ -109,5 +110,9 @@ public class TetrisView extends SurfaceView implements Callback, GameCanvas{
 
 	public boolean isReady() {
 		return ready;
+	}
+
+	public Paint getPaint() {
+		return paint;
 	}
 }

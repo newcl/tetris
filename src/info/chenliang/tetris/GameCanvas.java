@@ -1,5 +1,7 @@
 package info.chenliang.tetris;
 
+import android.graphics.Paint;
+
 
 public interface GameCanvas {
 	public static final int ALIGN_CENTER = 0;
@@ -16,4 +18,5 @@ public interface GameCanvas {
 	public void drawText(String text, float x, float y, float color, int alignment);
 	public int getFontHeight();
 	public boolean isReady();
+	public Paint getPaint();
 }

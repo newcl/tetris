@@ -42,9 +42,9 @@ public abstract class Block {
 		BlockCell[] cells = getCells();
 		
 		minX = cells[0].x;
-		maxX = cells[0].x;
+		maxX = cells[0].x+2;
 		minY = cells[0].y;
-		maxY = cells[0].y;
+		maxY = cells[0].y+2;
 		for(int i=1; i < cells.length; i++)
 		{
 			minX = Math.min(minX, cells[i].x);
@@ -171,6 +171,19 @@ public abstract class Block {
 		Assert.judge(width%2==0, "size error");
 		Assert.judge(height%2==0, "size error");
 		return new Vector2d(width/2, height/2);
+	}
+	
+	public BlockCell[] cloneCells()
+	{
+		BlockCell[] cells = getCells();
+		BlockCell[] clone = new BlockCell[cells.length];
+		
+		for(int i=0; i < clone.length;i ++)
+		{
+			clone[i] = new BlockCell(cells[i]);
+		}
+		
+		return clone;
 	}
 	
 	public abstract BlockCell[] getCells();
