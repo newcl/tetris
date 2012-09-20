@@ -12,9 +12,9 @@ public class RectangleShape extends Shape{
 
 	@Override
 	public void draw(GameCanvas canvas, float x, float y) {
-		canvas.fillRect(x-width/2, y-height/2,x+width/2,y+height/2, 0xffff0000);
+		canvas.fillRect(x-width/2, y-height/2,x+width/2,y+height/2, 0xffff0000,0xff);
 		
-		canvas.drawRect(x-width/2, y-height/2,x+width/2,y+height/2, 0);
+		canvas.drawRect(x-width/2, y-height/2,x+width/2,y+height/2, 0,0xff);
 	}
 
 }

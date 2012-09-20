@@ -12,8 +12,8 @@ public interface GameCanvas {
 	public boolean endDraw();
 	public int getWidth();
 	public int getHeight();
-	public void drawRect(float left, float top, float right, float bottom, int color);
-	public void fillRect(float left, float top, float right, float bottom, int color);
+	public void drawRect(float left, float top, float right, float bottom, int color, int alpha);
+	public void fillRect(float left, float top, float right, float bottom, int color, int alpha);
 	public void clipRect(float left, float top, float right, float bottom);
 	public void drawText(String text, float x, float y, float color, int alignment);
 	public int getFontHeight();

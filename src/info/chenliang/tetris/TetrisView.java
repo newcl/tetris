@@ -73,16 +73,18 @@ public class TetrisView extends SurfaceView implements Callback, GameCanvas{
 	}
 
 	public void drawRect(float left, float top, float right, float bottom,
-			int color) {
+			int color, int alpha) {
 		paint.setStyle(Style.STROKE);
 		paint.setColor(color);
+		paint.setAlpha(alpha);
 		canvas.drawRect(left, top, right, bottom, paint);
 	}
 
 	public void fillRect(float left, float top, float right, float bottom,
-			int color) {
+			int color, int alpha) {
 		paint.setStyle(Style.FILL);
 		paint.setColor(color);
+		paint.setAlpha(alpha);
 		canvas.drawRect(left, top, right, bottom, paint);
 	}
 

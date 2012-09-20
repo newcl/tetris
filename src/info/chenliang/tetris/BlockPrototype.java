@@ -19,7 +19,7 @@ public class BlockPrototype {
 	
 	public BlockPrototype(String name, int red, int green, int blue)
 	{
-		this(name, 0xff000000|(red<<16)|(green<<8)|blue);
+		this(name, (red<<16)|(green<<8)|blue);
 	}
 	
 	public List<BlockCell> getBlockCells() {
