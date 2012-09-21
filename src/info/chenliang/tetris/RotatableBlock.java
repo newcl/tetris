@@ -1,5 +1,7 @@
 package info.chenliang.tetris;
 
+import info.chenliang.debug.Assert;
+
 public class RotatableBlock extends Block {
 	private BlockCell[] cells;
 	

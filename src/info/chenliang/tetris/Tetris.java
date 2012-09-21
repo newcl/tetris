@@ -1,5 +1,8 @@
 package info.chenliang.tetris;
 
+import info.chenliang.debug.Assert;
+import info.chenliang.tetris.sound.SoundManager;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,12 +10,9 @@ import java.util.Map;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.media.AudioManager;
-import android.media.SoundPool;
-import android.media.SoundPool.OnLoadCompleteListener;
 import android.view.KeyEvent;
 
-public class Tetris implements Runnable, OnLoadCompleteListener{
+public class Tetris implements Runnable{
 	private static int ROW_COUNT = 20;
 	private static int COLUMN_COUNT = 10;
 	
@@ -72,8 +72,8 @@ public class Tetris implements Runnable, OnLoadCompleteListener{
 	private int instanceDownCount;
 	private int instanceDownStartY;
 	
-	private SoundPool soundPool;
-	private int soundEffectBlockHitGround;
+	private SoundManager soundManager;
+	
 	public Tetris(GameCanvas gameCanvas)
 	{
 		this.gameCanvas = gameCanvas;
@@ -114,10 +114,8 @@ public class Tetris implements Runnable, OnLoadCompleteListener{
 		}
 		
 		initViewParams();
-		
-		soundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
-		soundPool.setOnLoadCompleteListener(this);
-		soundEffectBlockHitGround = soundPool.load(TetrisActivity.instance.relativeLayout.getContext(), R.raw.hit, 0);
+		soundManager = new SoundManager();
+		soundManager.init();
 	}
 	
 	public void run() {
@@ -240,6 +238,7 @@ public class Tetris implements Runnable, OnLoadCompleteListener{
 				}
 				else
 				{
+					soundManager.play(R.raw.hit);
 					fixCurrentBlock();					
 				}
 			}
@@ -733,8 +732,6 @@ public class Tetris implements Runnable, OnLoadCompleteListener{
 	
 	private boolean fixCurrentBlock()
 	{
-		soundPool.play(soundEffectBlockHitGround, 0.5f, 0.5f, 0, 1, 1);
-		
 		blockContainer.fixBlock(currentBlock);
 		currentBlock = nextBlock;
 		boolean canPutNextBlockInContainer = findPositionForBlock(currentBlock);
@@ -832,11 +829,6 @@ public class Tetris implements Runnable, OnLoadCompleteListener{
 			notifyAll();
 		}
 		gameThread = null;
-	}
-
-	public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
-
-		System.out.println(soundPool + " sampleId=" + sampleId + " status=" + status);
 	}
 	
 }

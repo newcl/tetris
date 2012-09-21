@@ -14,7 +14,6 @@ public class FixedFramesBlock extends Block {
 
 	@Override
 	public BlockCell[] getCells() {
-		// TODO Auto-generated method stub
 		List<BlockCell> l = frames.get(currentFrame).getCells();
 		BlockCell[] bcs = l.toArray(new BlockCell[0]);
 		return bcs;
@@ -22,7 +21,6 @@ public class FixedFramesBlock extends Block {
 
 	@Override
 	public Block duplicate() {
-		// TODO Auto-generated method stub
 		FixedFramesBlock block = new FixedFramesBlock(x, y, color, frames);
 		block.currentFrame = currentFrame;
 		return block;
@@ -30,13 +28,11 @@ public class FixedFramesBlock extends Block {
 
 	@Override
 	public void rotate() {
-		// TODO Auto-generated method stub
 		currentFrame = (currentFrame + 1) % frames.size();
 	}
 
 	@Override
 	public BlockCell[] tryRotate() {
-		// TODO Auto-generated method stub
 		return nextFrame().getCells().toArray(new BlockCell[0]);
 	}
 	

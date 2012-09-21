@@ -1,4 +1,4 @@
-package info.chenliang.tetris;
+package info.chenliang.debug;
 
 public class Assert {
 	public static void judge(boolean expression, String message)
