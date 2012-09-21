@@ -1,19 +1,18 @@
 package info.chenliang.tetris;
 
 import android.app.Activity;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.RelativeLayout.LayoutParams;
-import android.view.View.OnTouchListener;
 
 public class TetrisActivity extends Activity implements OnTouchListener {
 

@@ -64,6 +64,11 @@ public class Tetris implements Runnable{
 	
 	private int state;
 	
+	private int instanceDownTotal;
+	private int instanceDownStep;
+	private int instanceDownCount;
+	private int instanceDownStartY;
+	
 	public Tetris(GameCanvas gameCanvas)
 	{
 		this.gameCanvas = gameCanvas;
@@ -161,7 +166,15 @@ public class Tetris implements Runnable{
 						inputDown = true;
 						break;
 					case INSTANT_DOWN:
-						sp = currentBlock.y;
+						instanceDownStartY = currentBlock.y;
+						
+						while(blockContainer.canMoveDown(currentBlock))
+						{
+							currentBlock.translate(0, 2);
+						}
+						instanceDownCount = 0;
+						instanceDownTotal = (currentBlock.y - instanceDownStartY) / 2;
+						instanceDownStep = instanceDownTotal / 3;
 						state = STATE_BLOCK_INSTANT_DOWN;
 						break;
 					default:
@@ -204,10 +217,17 @@ public class Tetris implements Runnable{
 			}
 			else if(state == STATE_BLOCK_INSTANT_DOWN)
 			{
+				int step = instanceDownStep;
+				if(instanceDownCount + step > instanceDownTotal)
+				{
+					step = instanceDownTotal - instanceDownCount;
+				}
+				
+				instanceDownCount += step;
+				
 				if(blockContainer.canMoveDown(currentBlock))
 				{
-					currentBlock.translate(0, 2);
-					//sp +=2;
+					currentBlock.translate(0, step);
 				}
 				else
 				{
@@ -219,7 +239,6 @@ public class Tetris implements Runnable{
 		}
 	}
 	
-	int sp;
 	
 	private void drawContainerBackground()
 	{
@@ -274,11 +293,13 @@ public class Tetris implements Runnable{
 			}
 			else if(state == STATE_BLOCK_INSTANT_DOWN)
 			{
-				for(int y=currentBlock.y-2;y>=sp;y-=2)
+				int alpha = 20;
+				for(int y=instanceDownStartY;y<currentBlock.y;y+=2)
 				{
-					drawBlock(currentBlock, 0, -cellSize*((currentBlock.y-y) / 2), 30,false);	
+					int cellDiff = (currentBlock.y-y) / 2;
+					alpha = Math.min(65, alpha + 3) ;
+					drawBlock(currentBlock, 0, -cellSize*cellDiff, alpha,false);	
 				}
-				
 			}
 			
 			drawBlock(currentBlock, 0, 0,255,true);

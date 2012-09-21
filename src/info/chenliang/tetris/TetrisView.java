@@ -2,7 +2,6 @@ package info.chenliang.tetris;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.DrawFilter;
 import android.graphics.Paint;
 import android.graphics.Paint.Align;
 import android.graphics.Paint.FontMetrics;
