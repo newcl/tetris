@@ -204,12 +204,15 @@ public class Tetris implements Runnable{
 			}
 			else if(state == STATE_BLOCK_INSTANT_DOWN)
 			{
-				while(blockContainer.canMoveDown(currentBlock))
+				if(blockContainer.canMoveDown(currentBlock))
 				{
 					currentBlock.translate(0, 2);
+					//sp +=2;
 				}
-				
-				//fixCurrentBlock();
+				else
+				{
+					fixCurrentBlock();					
+				}
 			}
 			
 			tickGameObjects(timeElapsed);
@@ -260,25 +263,25 @@ public class Tetris implements Runnable{
 				for(int col=0; col < blockContainer.getNumCols(); col++){
 					BlockContainerCell cell = containerRow.getColumn(col);
 					if(cell.getStatus() == BlockContainerCellStatus.OCCUPIED){
-						drawBlockCell(col, row, cell.getColor(), 0, 0,255);
+						drawBlockCell(col, row, cell.getColor(), 0, 0,255,true);
 					}
 				}
 			}
 			
 			if(state == STATE_NORMAL)
 			{
-				drawBlock(shadowBlock, 0, 0,255);
+				drawBlock(shadowBlock, 0, 0,255,true);
 			}
 			else if(state == STATE_BLOCK_INSTANT_DOWN)
 			{
 				for(int y=currentBlock.y-2;y>=sp;y-=2)
 				{
-					drawBlock(currentBlock, 0, -cellSize*((currentBlock.y-y) / 2), 90);	
+					drawBlock(currentBlock, 0, -cellSize*((currentBlock.y-y) / 2), 30,false);	
 				}
 				
 			}
 			
-			drawBlock(currentBlock, 0, 0,255);
+			drawBlock(currentBlock, 0, 0,255,true);
 			
 			drawGameObjects();
 			
@@ -294,7 +297,7 @@ public class Tetris implements Runnable{
 		}
 	}
 	
-	private void drawBlock(Block block, float offsetX, float offsetY, int alpha){
+	private void drawBlock(Block block, float offsetX, float offsetY, int alpha, boolean outline){
 		BlockCell[] cells = block.getCells();
 		for (int i = 0; i < cells.length; i++) {
 			BlockCell cell = cells[i];
@@ -303,7 +306,7 @@ public class Tetris implements Runnable{
 			Assert.judge((block.getY() + cell.y) % 2 == 0, "block position not right, should be even.");
 			int cellX = (block.getX() + cell.x) / 2;
 			int cellY = (block.getY() + cell.y) / 2;
-			drawBlockCell(cellX, cellY, block.getColor(), offsetX, offsetY, alpha);
+			drawBlockCell(cellX, cellY, block.getColor(), offsetX, offsetY, alpha, outline);
 		}
 	}
 	
@@ -323,15 +326,15 @@ public class Tetris implements Runnable{
 	private void glowBlock(Block block)
 	{
 		float blockOffset = 3f;
-		drawBlock(block, -blockOffset, 0,255);
-		drawBlock(block, 0, -blockOffset,255);
-		drawBlock(block, +blockOffset, 0,255);
-		drawBlock(block, 0, +blockOffset,255);
+		drawBlock(block, -blockOffset, 0,255,false);
+		drawBlock(block, 0, -blockOffset,255,false);
+		drawBlock(block, +blockOffset, 0,255,false);
+		drawBlock(block, 0, +blockOffset,255,false);
 		
-		drawBlock(block, -blockOffset, -blockOffset,255);
-		drawBlock(block, +blockOffset, -blockOffset,255);
-		drawBlock(block, -blockOffset, +blockOffset,255);
-		drawBlock(block, +blockOffset, +blockOffset,255);
+		drawBlock(block, -blockOffset, -blockOffset,255,false);
+		drawBlock(block, +blockOffset, -blockOffset,255,false);
+		drawBlock(block, -blockOffset, +blockOffset,255,false);
+		drawBlock(block, +blockOffset, +blockOffset,255,false);
 		
 		float left = leftMarginWidth + (block.getX() + block.minX) / 2 * cellSize - blockOffset;
 		float right = leftMarginWidth + (block.getX() + block.maxX) / 2 * cellSize + blockOffset;
@@ -424,7 +427,7 @@ public class Tetris implements Runnable{
 			}
 		}
 		
-		drawBlock(block, 0, 0,255);
+		drawBlock(block, 0, 0,255,true);
 	}
 	
 	private int compositeColor(int red, int green, int blue, int alpha)
@@ -432,12 +435,15 @@ public class Tetris implements Runnable{
 		return alpha<<24|red<<16|green<<8|blue;
 	}
 	
-	private void drawBlockCell(float cellX, float cellY, int color, float offsetX, float offsetY, int alpha){
+	private void drawBlockCell(float cellX, float cellY, int color, float offsetX, float offsetY, int alpha, boolean outline){
 		float x = leftMarginWidth+ cellX*cellSize + offsetX;
 		float y = topMarginHeight+ cellY*cellSize + offsetY;
 		
 		gameCanvas.fillRect(x, y, x + cellSize, y + cellSize, color, alpha);
-		gameCanvas.drawRect(x, y, x + cellSize-1, y + cellSize-1, 0xffffff, 0xff);
+		if(outline)
+		{
+			gameCanvas.drawRect(x, y, x + cellSize-1, y + cellSize-1, 0xffffff, 0xff);			
+		}
 	}
 	
 	private void drawInfo()
@@ -714,6 +720,7 @@ public class Tetris implements Runnable{
 			blockContainer.reset();
 		}
 		hasHeldInThisTurn = false;
+		state = STATE_NORMAL;
 		return canPutNextBlockInContainer;
 	}
 	
