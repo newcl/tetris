@@ -19,7 +19,7 @@ public class TetrisActivity extends Activity implements OnTouchListener {
 	private TetrisView tetrisView;
 	private Window window;
 	
-	private RelativeLayout relativeLayout;
+	public RelativeLayout relativeLayout;
 	
 	private final int ID_VIEW = 3000;
 	private final int ID_LEFT_BUTTON = 3001;
@@ -32,7 +32,9 @@ public class TetrisActivity extends Activity implements OnTouchListener {
 	
 	private Tetris tetris;
 	
-	Button pauseButton;
+	private Button pauseButton;
+	
+	public static TetrisActivity instance;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -41,6 +43,8 @@ public class TetrisActivity extends Activity implements OnTouchListener {
         setFullScreen();
         
         initUi();   
+        
+        instance = this;
     }
     
     private void setFullScreen()

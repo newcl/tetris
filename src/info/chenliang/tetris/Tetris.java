@@ -7,9 +7,12 @@ import java.util.Map;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.media.AudioManager;
+import android.media.SoundPool;
+import android.media.SoundPool.OnLoadCompleteListener;
 import android.view.KeyEvent;
 
-public class Tetris implements Runnable{
+public class Tetris implements Runnable, OnLoadCompleteListener{
 	private static int ROW_COUNT = 20;
 	private static int COLUMN_COUNT = 10;
 	
@@ -69,6 +72,8 @@ public class Tetris implements Runnable{
 	private int instanceDownCount;
 	private int instanceDownStartY;
 	
+	private SoundPool soundPool;
+	private int soundEffectBlockHitGround;
 	public Tetris(GameCanvas gameCanvas)
 	{
 		this.gameCanvas = gameCanvas;
@@ -109,6 +114,10 @@ public class Tetris implements Runnable{
 		}
 		
 		initViewParams();
+		
+		soundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
+		soundPool.setOnLoadCompleteListener(this);
+		soundEffectBlockHitGround = soundPool.load(TetrisActivity.instance.relativeLayout.getContext(), R.raw.hit, 0);
 	}
 	
 	public void run() {
@@ -724,6 +733,8 @@ public class Tetris implements Runnable{
 	
 	private boolean fixCurrentBlock()
 	{
+		soundPool.play(soundEffectBlockHitGround, 0.5f, 0.5f, 0, 1, 1);
+		
 		blockContainer.fixBlock(currentBlock);
 		currentBlock = nextBlock;
 		boolean canPutNextBlockInContainer = findPositionForBlock(currentBlock);
@@ -820,8 +831,12 @@ public class Tetris implements Runnable{
 		synchronized (this) {
 			notifyAll();
 		}
-		
 		gameThread = null;
+	}
+
+	public void onLoadComplete(SoundPool soundPool, int sampleId, int status) {
+
+		System.out.println(soundPool + " sampleId=" + sampleId + " status=" + status);
 	}
 	
 }
