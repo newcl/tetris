@@ -52,8 +52,8 @@ public class Vector2d {
 	public void normalize()
 	{
 		float length = length();
-		Assert.judge(length != 0, "Can not normalize a length 0 vector2d.");
-		x /= length;
-		y /= length;
+		Assert.judge(!Precision.getInstance().equals(length ,0), "Can not normalize a length 0 vector2d.");
+		float factor = 1/length;
+		scale(factor);
 	}
 }

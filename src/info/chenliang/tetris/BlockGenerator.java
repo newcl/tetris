@@ -1,5 +1,7 @@
 package info.chenliang.tetris;
 
+import info.chenliang.ds.Vector3d;
+
 import java.util.ArrayList;
 import java.util.List;
 

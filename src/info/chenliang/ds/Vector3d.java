@@ -3,13 +3,27 @@ package info.chenliang.ds;
 import info.chenliang.debug.Assert;
 
 public class Vector3d {
-	private float x,y,z;
+	private float x=0.0f,y=0.0f,z=0.0f;
 
 	public Vector3d(float x, float y, float z) {
 		super();
 		this.x = x;
 		this.y = y;
 		this.z = z;
+	}
+	
+	public Vector3d()
+	{
+	}
+	
+	public Vector3d(Vector3d from, Vector3d to)
+	{
+		copy(to.minus(from));
+	}
+	
+	public Vector3d(Vector3d v)
+	{
+		copy(v);
 	}
 
 	public float getX() {
@@ -67,5 +81,35 @@ public class Vector3d {
 		x /= length;
 		y /= length;
 		z /= length;
+	}
+	
+	public float dot(Vector3d v)
+	{
+		return x*v.x + y*v.y + z*v.z;
+	}
+	
+	public Vector3d minus(Vector3d v)
+	{
+		Vector3d result = new Vector3d(v);
+		result.scale(-1);
+		return add(result);
+	}
+	
+	public Vector3d add(Vector3d v)
+	{
+		Vector3d result = new Vector3d(this);
+		result.x += v.x;
+		result.y += v.y;
+		result.z += v.z;
+		return result;
+	}
+	
+	public Vector3d cross(Vector3d v)
+	{
+		Vector3d result = new Vector3d();
+		result.x = y*v.z - z*v.y;
+		result.y = z*v.x - x*v.z;
+		result.z = x*v.y - y*v.x;
+		return result;
 	}
 }
