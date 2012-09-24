@@ -19,7 +19,7 @@ public class Tetris implements Runnable{
 	private static int ROW_COUNT = 20;
 	private static int COLUMN_COUNT = 10;
 	
-	private final static int REFRESH_INVERVAL = 5000;
+	private final static int REFRESH_INVERVAL = 50;
 	
 	private Thread gameThread;
 	private long lastTickTime;

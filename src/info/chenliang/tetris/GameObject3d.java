@@ -41,7 +41,7 @@ public class GameObject3d extends GameObject{
 			transformedPoints[i] = new Vertex3d();
 		}
 		
-		lifeTime = 20000;
+		lifeTime = 200000000;
 	}
 	
 	public void tick(int timeElapsed) {
@@ -61,22 +61,22 @@ public class GameObject3d extends GameObject{
 	}
 	
 	public void draw(GameCanvas canvas) {
-		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[2]);
-		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[3]);
+		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[2], new Vector3d(0xff,0,0));
+		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[3], new Vector3d(0xff,0,0));
 		
-		triangleRenderer.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[6]);
-		triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[6], transformedPoints[7]);
+		triangleRenderer.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[6], new Vector3d(0,0xff,0));
+		triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[6], transformedPoints[7], new Vector3d(0,0xff,0));
 		
-		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[5]);
-		triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[0]);
+		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[5], new Vector3d(0,0,0xff));
+		triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[0], new Vector3d(0,0,0xff));
 		
-		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[6]);
-		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1]);
+		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[6], new Vector3d(0xff,0xff,0));
+		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1], new Vector3d(0xff,0xff,0));
 		
-		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[3], transformedPoints[7]);
-		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[2]);
+		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[3], transformedPoints[7], new Vector3d(0xff,0,0xff));
+		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[2], new Vector3d(0xff,0,0xff));
 		
-		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[7]);
-		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[0]);
+		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[7], new Vector3d(0,0xff,0xff));
+		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[0], new Vector3d(0,0xff,0xff));
 	}
 }
