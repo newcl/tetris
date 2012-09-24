@@ -16,7 +16,9 @@ public class Camera {
 	private Plane3d leftPlane, rightPlane, topPlane, bottomPlane;
 	private Matrix4x4 worldToCameraTransform;
 	private Matrix4x4 cameraToProjectionTransform;
+
 	private Matrix4x4 projectionToScreenTransform;
+	private int screenWidth, screenHeight;
 	private int screenXOffset, screenYOffset;
 	
 	public Camera(Vector3d position, Vector3d lookAt, Vector3d up,
@@ -29,11 +31,37 @@ public class Camera {
 		this.viewAngle = viewAngle;
 		this.nearZ = nearZ;
 		this.farZ = farZ;
+		this.screenWidth = screenWidth;
+		this.screenHeight = screenHeight;
 		this.screenXOffset = screenXOffset;
 		this.screenYOffset = screenYOffset;
 		this.aspectRatio = (float)(screenWidth*1.0/screenHeight);
 		
+		worldToCameraTransform = new Matrix4x4();
+		cameraToProjectionTransform = new Matrix4x4();
+		projectionToScreenTransform = new Matrix4x4();
+		
 		updateWorldToCameraTransform();
+		updateCameraToProjectionTransform();
+		updateProjectionToScreenTransform();
+		
+		Matrix4x4 m = worldToCameraTransform.multiply(cameraToProjectionTransform);
+		m = m.multiply(projectionToScreenTransform);
+		
+	}
+	
+	private void updateProjectionToScreenTransform()
+	{
+		//x' = screenWidth/2 * x + screenWidth/2 + screenXOffset;
+		//y' = -screenHeight/2 * y + screenHeight/2 + screenYOffset;
+		
+		float screenWidthHalf = screenWidth*1.0f/2;
+		float screenHeightHalf = screenHeight*1.0f/2;
+		
+		projectionToScreenTransform.set(screenWidthHalf, 0, 0, screenWidthHalf + screenXOffset, 
+										0, -screenHeightHalf, 0, screenHeightHalf + screenXOffset, 
+										0, 0, 1, 0, 
+										0, 0, 0, 1);
 	}
 	
 	private void updateWorldToCameraTransform()
@@ -82,8 +110,28 @@ public class Camera {
 										0, 0, 1, 0);
 	}
 	
-	public void init()
-	{
-		
+	public void setWorldToCameraTransform(Matrix4x4 worldToCameraTransform) {
+		this.worldToCameraTransform = worldToCameraTransform;
+	}
+
+	public Matrix4x4 getCameraToProjectionTransform() {
+		return cameraToProjectionTransform;
+	}
+
+	public void setCameraToProjectionTransform(Matrix4x4 cameraToProjectionTransform) {
+		this.cameraToProjectionTransform = cameraToProjectionTransform;
+	}
+	
+
+	public Matrix4x4 getProjectionToScreenTransform() {
+		return projectionToScreenTransform;
+	}
+
+	public void setProjectionToScreenTransform(Matrix4x4 projectionToScreenTransform) {
+		this.projectionToScreenTransform = projectionToScreenTransform;
+	}
+	
+	public Matrix4x4 getWorldToCameraTransform() {
+		return worldToCameraTransform;
 	}
 }

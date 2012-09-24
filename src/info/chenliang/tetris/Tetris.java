@@ -1,6 +1,9 @@
 package info.chenliang.tetris;
 
 import info.chenliang.debug.Assert;
+import info.chenliang.ds.Vector3d;
+import info.chenliang.fatrock.Camera;
+import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.tetris.sound.SoundManager;
 
 import java.util.ArrayList;
@@ -73,6 +76,8 @@ public class Tetris implements Runnable{
 	private int instanceDownStartY;
 	
 	private SoundManager soundManager;
+	private Camera camera;
+	private TriangleRenderer triangleRenderer;
 	
 	public Tetris(GameCanvas gameCanvas)
 	{
@@ -116,6 +121,9 @@ public class Tetris implements Runnable{
 		initViewParams();
 		soundManager = new SoundManager();
 		soundManager.init();
+		
+		camera = new Camera(new Vector3d(0, 0, -20), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 90, 0, 200, gameCanvas.getWidth(), gameCanvas.getHeight(), 0, 0);
+		triangleRenderer = new TriangleRenderer(gameCanvas);
 	}
 	
 	public void run() {
@@ -680,7 +688,7 @@ public class Tetris implements Runnable{
 	
 	private void addRemoveFullLineEffect(List<BlockContainerRow> fullRows)
 	{
-		/*
+		
 		for(int i=0;i < fullRows.size() ;i++)
 		{
 			BlockContainerRow containerRow = fullRows.get(i);
@@ -690,38 +698,25 @@ public class Tetris implements Runnable{
 			{
 				BlockContainerCell containerCell = containerRow.getColumn(col);
 				
-				GameObject gameObject = null;
-				
-				gameObject = new GameObject(xOffset+cellSize/4, yOffset+cellSize/4, containerCell.getColor());
-				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
-				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
+				GameObject gameObject = new GameObject3d(xOffset, yOffset, 0, containerCell.getColor(), camera, triangleRenderer);
 				gameObjects.add(gameObject);
-				
-				gameObject = new GameObject(xOffset+cellSize/2, yOffset+cellSize/4, containerCell.getColor());
-				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
-				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
-				gameObjects.add(gameObject);
-				
-				gameObject = new GameObject(xOffset+cellSize/4, yOffset+cellSize/2, containerCell.getColor());
-				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
-				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
-				gameObjects.add(gameObject);
-				
-				gameObject = new GameObject(xOffset+cellSize/2, yOffset+cellSize/2, containerCell.getColor());
-				gameObject.setShape(new RectangleShape(cellSize/2, cellSize/2));
-				gameObject.setSpeedParams(floatRandom(8), floatRandom(8), 0, gravity, angleSpeed*randomSign());
-				gameObjects.add(gameObject);
-				
-				
 				xOffset += cellSize;
 			}
 			
 		}
-		*/
+		
+		
+		
 	}
 	
 	private void tickGameObjects(int timeElapsed)
 	{
+		if(gameObjects.size() == 0)
+		{
+			GameObject gameObject = new GameObject3d(100, 100, 0, 0xff,camera, triangleRenderer);
+			gameObjects.add(gameObject);
+		}
+		
 		for(int i=0;i < gameObjects.size();i++)
 		{
 			GameObject gameObject = gameObjects.get(i);

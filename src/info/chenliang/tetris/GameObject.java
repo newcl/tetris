@@ -3,17 +3,22 @@ package info.chenliang.tetris;
 
 public class GameObject implements Tickable{
 	
-	private float x, y;
+	protected float x, y;
 	
-	private Shape shape;
-	private float speedX, speedY;
-	private float accelerationX, accelerationY;
+	protected Shape shape;
+	protected float speedX, speedY;
+	protected float accelerationX, accelerationY;
 	
-	private float angleSpeed;
-	private float angle;
+	protected float angleSpeed;
+	protected float angle;
 	
-	private int lifeTime = 500;
-	private int color;
+	protected int lifeTime = 500;
+	protected int color;
+	
+	public GameObject()
+	{
+		
+	}
 	
 	public GameObject(float x, float y, int color) {
 		super();
@@ -43,7 +48,7 @@ public class GameObject implements Tickable{
 		}
 	}
 	
-	private void cleanUp()
+	protected void cleanUp()
 	{
 		
 	}

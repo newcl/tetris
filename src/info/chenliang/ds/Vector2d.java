@@ -3,7 +3,7 @@ package info.chenliang.ds;
 import info.chenliang.debug.Assert;
 
 public class Vector2d {
-	private float x,y;
+	public float x,y;
 
 	public Vector2d(float x, float y) {
 		super();

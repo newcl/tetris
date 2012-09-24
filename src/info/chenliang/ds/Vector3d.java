@@ -3,13 +3,11 @@ package info.chenliang.ds;
 import info.chenliang.debug.Assert;
 
 public class Vector3d {
-	private float x=0.0f,y=0.0f,z=0.0f;
+	public float x=0.0f,y=0.0f,z=0.0f;
 
 	public Vector3d(float x, float y, float z) {
 		super();
-		this.x = x;
-		this.y = y;
-		this.z = z;
+		set(x, y, z);
 	}
 	
 	public Vector3d()
@@ -47,6 +45,13 @@ public class Vector3d {
 	}
 
 	public void setZ(float z) {
+		this.z = z;
+	}
+	
+	public void set(float x, float y, float z)
+	{
+		this.x = x;
+		this.y = y;
 		this.z = z;
 	}
 	
