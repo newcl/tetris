@@ -41,7 +41,7 @@ public class GameObject3d extends GameObject{
 			transformedPoints[i] = new Vertex3d();
 		}
 		
-		lifeTime = 8000;
+		lifeTime = 20000;
 	}
 	
 	public void tick(int timeElapsed) {
@@ -49,8 +49,8 @@ public class GameObject3d extends GameObject{
 		
 		for(int i=0; i < 8; i++)
 		{
-			Matrix4x4 m = camera.getWorldToCameraTransform().multiply(camera.getCameraToProjectionTransform());
-			Vector4d v = m.transform(new Vector4d(points[i].position, 1));
+			Vector4d v = camera.getWorldToCameraTransform().transform(new Vector4d(points[i].position, 1));
+			v = camera.getCameraToProjectionTransform().transform(v);
 			v.x /= v.w;
 			v.y /= v.w;
 			v.z /= v.w;

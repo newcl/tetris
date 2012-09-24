@@ -19,7 +19,7 @@ public class Tetris implements Runnable{
 	private static int ROW_COUNT = 20;
 	private static int COLUMN_COUNT = 10;
 	
-	private final static int REFRESH_INVERVAL = 30;
+	private final static int REFRESH_INVERVAL = 5000;
 	
 	private Thread gameThread;
 	private long lastTickTime;
@@ -122,7 +122,7 @@ public class Tetris implements Runnable{
 		soundManager = new SoundManager();
 		soundManager.init();
 		
-		camera = new Camera(new Vector3d(0, 0, -20), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 90, 0, 200, gameCanvas.getWidth(), gameCanvas.getHeight(), 0, 0);
+		camera = new Camera(new Vector3d(0, 0, -100), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 120, 10, 1000, gameCanvas.getWidth(), gameCanvas.getHeight(), 0, 0);
 		triangleRenderer = new TriangleRenderer(gameCanvas);
 	}
 	
@@ -529,6 +529,8 @@ public class Tetris implements Runnable{
 	
 	private void drawGameObjects()
 	{
+		triangleRenderer.zBuffer.clear();
+		
 		for(int i=0;i < gameObjects.size();i++)
 		{
 			GameObject gameObject = gameObjects.get(i);

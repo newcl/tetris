@@ -5,12 +5,17 @@ import info.chenliang.ds.Line2d;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.tetris.GameCanvas;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class TriangleRenderer {
 	public GameCanvas gameCanvas;
+	public Map<String, Float> zBuffer;
 	
 	public TriangleRenderer(GameCanvas gameCanvas)
 	{
 		this.gameCanvas = gameCanvas;
+		zBuffer = new HashMap<String, Float>();
 	}
 	
 	public boolean isPointOnLine(Vector3d p1, Vector3d p2, Vector3d p3)
@@ -32,8 +37,20 @@ public class TriangleRenderer {
 	
 	public void driverSetPixel(float x, float y, Vector3d color, float z)
 	{
-		gameCanvas.fillRect(x, y, x+1, y+1, getColor(color), 0xff);
+		String key = x+""+y;
+		Float zf = zBuffer.get(key);
+		if(zf == null || zf < z)
+		{
+			gameCanvas.fillRect(x, y, x+1, y+1, getColor(color), 0xff);			
+			zBuffer.put(key, z);
+		}
 	}
+	
+	private Vector3d getRandomColor()
+	{
+		return new Vector3d((float)Math.random()*256, (float)Math.random()*256, (float)Math.random()*256);
+	}
+	
 	
 	public void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3)
 	{
@@ -49,9 +66,9 @@ public class TriangleRenderer {
 		float y3 = v3.position.y;
 		float z3 = v3.position.z;
 
-		Vector3d c1 = new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v1);
-		Vector3d c2 = new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v2);
-		Vector3d c3 = new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v3);
+		Vector3d c1 = getRandomColor();//new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v1);
+		Vector3d c2 = getRandomColor();//new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v2);
+		Vector3d c3 = getRandomColor();//new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v3);
 
 		if(isPointOnLine(v1.position, v2.position, v3.position))
 		{
