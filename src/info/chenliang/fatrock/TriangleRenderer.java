@@ -39,7 +39,7 @@ public class TriangleRenderer {
 	{
 		String key = x+""+y;
 		Float zf = zBuffer.get(key);
-		if(zf == null || zf < z)
+		if(zf == null || zf > z)
 		{
 			gameCanvas.fillRect(x, y, x+1, y+1, getColor(color), 0xff);			
 			zBuffer.put(key, z);
@@ -51,8 +51,7 @@ public class TriangleRenderer {
 		return new Vector3d((float)Math.random()*256, (float)Math.random()*256, (float)Math.random()*256);
 	}
 	
-	
-	public void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3)
+	public void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3, Vector3d color)
 	{
 		float x1 = v1.position.x;
 		float y1 = v1.position.y;
@@ -66,10 +65,9 @@ public class TriangleRenderer {
 		float y3 = v3.position.y;
 		float z3 = v3.position.z;
 
-		Vector3d c1 = getRandomColor();//new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v1);
-		Vector3d c2 = getRandomColor();//new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v2);
-		Vector3d c3 = getRandomColor();//new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v3);
-
+		Vector3d c1 = color;//new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v1);
+		Vector3d c2 = color;//new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v2);
+		Vector3d c3 = color;//new Vector3d(0, 0, 0xff);//softwareDriverGetPixel(driver, v3);
 		if(isPointOnLine(v1.position, v2.position, v3.position))
 		{
 			drawLine(v1.position, v2.position);
