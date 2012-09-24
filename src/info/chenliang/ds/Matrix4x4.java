@@ -8,7 +8,10 @@ public class Matrix4x4 {
 	
 	public Matrix4x4()
 	{
-		set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+		set(1, 0, 0, 0, 
+			0, 1, 0, 0, 
+			0, 0, 1, 0, 
+			0, 0, 0, 1);
 	}
 	
 	public void set(float m00, float m01, float m02, float m03,

@@ -117,4 +117,37 @@ public class Vector3d {
 		result.z = x*v.y - y*v.x;
 		return result;
 	}
+	
+	public Vector3d rotateAround(Vector3d n, float angle)
+	{
+		Assert.judge(Precision.getInstance().equals(1, n.length()), "n should be a unit vector!");
+		
+		//w = v_|_ X n
+		//v' = w*sinx + v_|_cosx
+		Vector3d vParallel = new Vector3d(n);
+		vParallel.scale(this.dot(n));
+		Vector3d vPerpendicular = this.minus(vParallel);
+		
+		Vector3d w = n.cross(vPerpendicular);
+		float angleInRadian = (float)(Math.toRadians(angle));
+		float sinx = (float)(Math.sin(angleInRadian));
+		float cosx = (float)(Math.cos(angleInRadian));
+		
+		w.scale(sinx);
+		vPerpendicular.scale(cosx);
+		
+		return w.add(vPerpendicular);
+	}
+	
+	public Vector3d scaleAlong(Vector3d n, float k)
+	{
+		Vector3d vParallel = new Vector3d(n);
+		vParallel.scale(this.dot(n));
+		
+		Vector3d vPerpendicular = this.minus(vParallel);
+		
+		vParallel.scale(k);
+		
+		return vPerpendicular.add(vParallel);
+	}
 }

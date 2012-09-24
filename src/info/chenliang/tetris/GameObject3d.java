@@ -1,6 +1,6 @@
 package info.chenliang.tetris;
 
-import info.chenliang.ds.Matrix4x4;
+import info.chenliang.ds.Matrix3x3;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
@@ -44,12 +44,19 @@ public class GameObject3d extends GameObject{
 		lifeTime = 200000000;
 	}
 	
+	int angle;
 	public void tick(int timeElapsed) {
 		lifeTime -= timeElapsed;
 		
+		Vector3d n = new Vector3d(0,1,0);
+		n.normalize();
+		Matrix3x3 r = Matrix3x3.buildRotateMatrix(n, angle);
+		
 		for(int i=0; i < 8; i++)
 		{
-			Vector4d v = camera.getWorldToCameraTransform().transform(new Vector4d(points[i].position, 1));
+			transformedPoints[i].position = r.transform(points[i].position);
+			
+			Vector4d v = camera.getWorldToCameraTransform().transform(new Vector4d(transformedPoints[i].position, 1));
 			v = camera.getCameraToProjectionTransform().transform(v);
 			v.x /= v.w;
 			v.y /= v.w;
@@ -58,6 +65,9 @@ public class GameObject3d extends GameObject{
 			v = camera.getProjectionToScreenTransform().transform(new Vector4d(v.x, v.y, v.z, 1));
 			transformedPoints[i].position.set(v.x, v.y, v.z);
 		}
+		
+		angle += 5;
+		angle %= 360;
 	}
 	
 	public void draw(GameCanvas canvas) {
