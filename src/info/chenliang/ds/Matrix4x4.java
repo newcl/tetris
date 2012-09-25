@@ -54,7 +54,7 @@ public class Matrix4x4 {
 	
 	public Vector4d transform(Vector4d v)
 	{
-		Vector4d result = new Vector4d(0, 0, 0, 0);
+		Vector4d result = new Vector4d(0, 0, 0, 1);
 		
 		result.x = new Vector4d(m00, m01, m02, m03).dot(v);
 		result.y = new Vector4d(m10, m11, m12, m13).dot(v);

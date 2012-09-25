@@ -123,13 +123,9 @@ public class Tetris implements Runnable{
 		soundManager = new SoundManager();
 		soundManager.init();
 		
-		camera = new Camera(new Vector3d(0, 0, -100), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 120, 10, 1000, containerWidth, containerHeight, leftMarginWidth, topMarginHeight);
+		camera = new Camera(new Vector3d(0, 0, -60), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 90, 10, 200, containerWidth, containerHeight, leftMarginWidth, topMarginHeight);
 		triangleRenderer = new TriangleRenderer(gameCanvas);
 		
-		v1 = new Vertex3d(new Vector3d(100, 30, 1.0f), color);
-		v2 = new Vertex3d(new Vector3d(30, 150, 1.0f), color);
-		v3 = new Vertex3d(new Vector3d(200, 300, 1.0f), color);
-		color = new Vector3d(0, 0, 0xff);
 	}
 	
 	public void run() {
@@ -724,7 +720,7 @@ public class Tetris implements Runnable{
 	{
 		if(gameObjects.size() == 0)
 		{
-			GameObject gameObject = new GameObject3d(30, 30, 0, 0xff, camera, triangleRenderer);
+			GameObject gameObject = new GameObject3d(0, 0, 0, 0xff, camera, triangleRenderer);
 			gameObjects.add(gameObject);
 		}
 		

@@ -30,17 +30,17 @@ public class GameObject3d extends GameObject{
 		this.triangleRenderer = triangleRenderer;
 		
 		points = new Vertex3d[8];
-		float length = 20;
+		float length = 10;
 		
-		points[0] = new Vertex3d(new Vector3d(0, 0, 0), new Vector3d(0, 0,0xff));
-		points[1] = new Vertex3d(new Vector3d(length, 0, 0), new Vector3d(0, 0, 0xff));
-		points[2] = new Vertex3d(new Vector3d(length, 0, length), new Vector3d(0, 0, 0xff));
-		points[3] = new Vertex3d(new Vector3d(0, 0, length), new Vector3d(0, 0, 0xff));
+		points[0] = new Vertex3d(new Vector4d(0, 0, 0), new Vector3d(0, 0,0xff));
+		points[1] = new Vertex3d(new Vector4d(length, 0, 0), new Vector3d(0, 0, 0xff));
+		points[2] = new Vertex3d(new Vector4d(length, 0, length), new Vector3d(0, 0, 0xff));
+		points[3] = new Vertex3d(new Vector4d(0, 0, length), new Vector3d(0, 0, 0xff));
 		
-		points[4] = new Vertex3d(new Vector3d(0, length, 0), new Vector3d(0, 0, 0xff));
-		points[5] = new Vertex3d(new Vector3d(length, length, 0), new Vector3d(0, 0, 0xff));
-		points[6] = new Vertex3d(new Vector3d(length, length, length), new Vector3d(0, 0, 0xff));
-		points[7] = new Vertex3d(new Vector3d(0, length, length), new Vector3d(0, 0, 0xff));
+		points[4] = new Vertex3d(new Vector4d(0, length, 0), new Vector3d(0, 0, 0xff));
+		points[5] = new Vertex3d(new Vector4d(length, length, 0), new Vector3d(0, 0, 0xff));
+		points[6] = new Vertex3d(new Vector4d(length, length, length), new Vector3d(0, 0, 0xff));
+		points[7] = new Vertex3d(new Vector4d(0, length, length), new Vector3d(0, 0, 0xff));
 		
 		transformedPoints = new Vertex3d[8]; 
 		for(int i=0; i < 8; i++)
@@ -65,20 +65,18 @@ public class GameObject3d extends GameObject{
 		
 		triangles.clear();
 		
-		Vector3d n = new Vector3d(0,1,0);
+		Vector3d n = new Vector3d(1,1,1);
 		n.normalize();
 		Matrix3x3 r = Matrix3x3.buildRotateMatrix(n, angle);
 		
 		for(int i=0; i < 8; i++)
 		{
-			Vector3d v = transformedPoints[i].position; 
-			
-			v = r.transform(points[i].position);
+			Vector3d v = r.transform(points[i].position.degenerate());
 			v.x += x;
 			v.y += y;
 			v.z += z;
 			
-			transformedPoints[i].position = v;
+			transformedPoints[i].position.set(v, 1.0f);
 			
 			/*
 			Vector4d v = camera.getWorldToCameraTransform().transform(new Vector4d(v, 1));
@@ -92,6 +90,20 @@ public class GameObject3d extends GameObject{
 			
 			transformedPoints[i].position.set(v.x, v.y, v.z);
 			*/
+		}
+		
+		for(int i=0; i < 8; i++)
+		{
+			Vector4d v2 = camera.getWorldToCameraTransform().transform(transformedPoints[i].position);
+			v2 = camera.getCameraToProjectionTransform().transform(v2);
+			v2.x /= v2.w;
+			v2.y /= v2.w;
+			v2.z /= v2.w;
+			float z = v2.w;
+			v2.w /= v2.w;
+			v2 = camera.getProjectionToScreenTransform().transform(v2);
+			v2.w = z;
+			transformedPoints[i].position = v2;
 		}
 		
 		fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], new Vector3d(0xff,0,0));
@@ -111,21 +123,6 @@ public class GameObject3d extends GameObject{
 		
 		fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[4], new Vector3d(0,0xff,0xff));
 		fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], new Vector3d(0,0xff,0xff));
-		
-		for(int i=0; i < 8; i++)
-		{
-			Vector3d v = transformedPoints[i].position; 
-			
-			Vector4d v2 = camera.getWorldToCameraTransform().transform(new Vector4d(v, 1));
-			v2 = camera.getCameraToProjectionTransform().transform(v2);
-			v2.x /= v2.w;
-			v2.y /= v2.w;
-			v2.z /= v2.w;
-			
-			v2 = camera.getProjectionToScreenTransform().transform(new Vector4d(v2.x, v2.y, v2.z, 1));
-			
-			transformedPoints[i].position.set(v2.x, v2.y, v2.z);
-		}
 		
 		angle += 5;
 		angle %= 360;
@@ -147,17 +144,29 @@ public class GameObject3d extends GameObject{
 //		}
 	}
 	
+	int count;
+	int ct = 0;
 	public void draw(GameCanvas canvas) {
+		/*
 		Logger.startLog("3d draw");
 		
 		for(int i=0; i < triangles.size(); i++)
 		{
 			Triangle triangle = triangles.get(i);
-			triangleRenderer.fillTriangle(triangle.v1, triangle.v2, triangle.v3, triangle.color);	
+			triangleRenderer.fillTriangle(triangle.v1, triangle.v2, triangle.v3, triangle.color);
+			
+			float offset = 100f;
+			
+			Vertex3d v1 = new Vertex3d(new Vector4d(triangle.v1.position.x-offset, triangle.v1.position.y-offset, triangle.v1.position.z-offset), triangle.v1.color);
+			Vertex3d v2 = new Vertex3d(new Vector4d(triangle.v2.position.x-offset, triangle.v2.position.y-offset, triangle.v2.position.z-offset), triangle.v2.color);
+			Vertex3d v3 = new Vertex3d(new Vector4d(triangle.v3.position.x-offset, triangle.v3.position.y-offset, triangle.v3.position.z-offset), triangle.v3.color);
+			
+			triangleRenderer.fillTriangle2(v1, v2, v3, triangle.color);	
 		}
 		
 		Logger.endLog();
-		
+		*/
+				
 		/*
 		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[2], new Vector3d(0xff,0,0));
 		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[3], new Vector3d(0xff,0,0));
@@ -177,5 +186,66 @@ public class GameObject3d extends GameObject{
 		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[7], new Vector3d(0,0xff,0xff));
 		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[0], new Vector3d(0,0xff,0xff));
 		*/
+		
+		/*
+		if(count == 0)
+		{
+			triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], new Vector3d(0xff,0,0));
+			triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2], new Vector3d(0xff,0,0));
+		}
+		else if(count == 1)
+		{
+			triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[6], new Vector3d(0,0xff,0));
+			triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[4], new Vector3d(0,0xff,0));
+		}
+		else if(count == 2)
+		{
+			triangleRenderer.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[0], new Vector3d(0,0,0xff));
+			triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[5], new Vector3d(0,0,0xff));
+		}
+		else if(count == 3)
+		{
+			triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[6], new Vector3d(0xff,0xff,0));
+			triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1], new Vector3d(0xff,0xff,0));
+		}
+		else if(count == 4)
+		{
+			triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[2], new Vector3d(0xff,0,0xff));
+			triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[7], transformedPoints[2], new Vector3d(0xff,0,0xff));
+		}
+		else if(count == 5)
+		{
+			triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[4], new Vector3d(0,0xff,0xff));
+			triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], new Vector3d(0,0xff,0xff));
+		}
+		
+		ct += 50;
+		if(ct >= 1000)
+		{
+			count ++;
+			count %= 6;
+			ct = 0;
+		}
+		*/
+		
+		
+		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], new Vector3d(0xff,0,0));
+		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2], new Vector3d(0xff,0,0));
+		
+		triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[6], new Vector3d(0,0xff,0));
+		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[4], new Vector3d(0,0xff,0));
+		
+		triangleRenderer.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[0], new Vector3d(0,0,0xff));
+		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[5], new Vector3d(0,0,0xff));
+		
+		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[6], new Vector3d(0xff,0xff,0));
+		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1], new Vector3d(0xff,0xff,0));
+		
+		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[2], new Vector3d(0xff,0,0xff));
+		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[7], transformedPoints[2], new Vector3d(0xff,0,0xff));
+		
+		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[4], new Vector3d(0,0xff,0xff));
+		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], new Vector3d(0,0xff,0xff));
+		
 	}
 }

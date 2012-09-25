@@ -5,6 +5,7 @@ import info.chenliang.ds.Bounds;
 import info.chenliang.ds.Line2d;
 import info.chenliang.ds.Precision;
 import info.chenliang.ds.Vector3d;
+import info.chenliang.ds.Vector4d;
 import info.chenliang.tetris.GameCanvas;
 
 import java.util.HashMap;
@@ -55,10 +56,10 @@ public class TriangleRenderer {
 	
 	public void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3, Vector3d color)
 	{
-		Vector3d temp;
-		Vector3d p1 = v1.position;
-		Vector3d p2 = v2.position;
-		Vector3d p3 = v3.position;
+		Vector4d temp;
+		Vector4d p1 = v1.position;
+		Vector4d p2 = v2.position;
+		Vector4d p3 = v3.position;
 		
 		if(p1.y > p2.y)
 		{
@@ -78,7 +79,7 @@ public class TriangleRenderer {
 		{
 			temp = p2;
 			p2 = p3;
-			p3 = p2;
+			p3 = temp;
 		}
 		
 		float dy31 = p3.y - p1.y;
@@ -96,7 +97,8 @@ public class TriangleRenderer {
 		float cross = dx21*dy31 - dy21*dx31;
 		if(cross == 0.0f)
 		{
-			drawLine(p3, p1);
+			//TODO this is not correct
+			drawLine(p3.degenerate(), p1.degenerate());
 			return;
 		}
 		
@@ -105,8 +107,8 @@ public class TriangleRenderer {
 		boolean right = cross > 0;		
 		int fc = (int)(color.x) << 16 | (int)(color.y) << 8 | (int)(color.z);
 		float dxLeft = 0.0f, dxRight = 0.0f, dzLeft=0.0f, dzRight=0.0f;
-		float dz31 = p3.z - p1.z;
-		float dz21 = p2.z - p1.z;
+		float dz31 = p3.w - p1.w;
+		float dz21 = p2.w - p1.w;
 		if(dy21 > 0.0f)
 		{
 			int startY = (int)Math.ceil(p1.y);
@@ -118,8 +120,8 @@ public class TriangleRenderer {
 			dzLeft = right ? dz31/dy31 : dx21/dy21;
 			dzRight = right ? dz21/dy21 : dz31/dy31;
 
-			float zLeft = p1.z;
-			float zRight = p1.z;
+			float zLeft = p1.w;
+			float zRight = p1.w;
 			
 			float xLeft = p1.x;
 			float xRight = p1.x;
@@ -128,10 +130,19 @@ public class TriangleRenderer {
 			{
 				int startX = (int)Math.ceil(xLeft);
 				int endX = (int)Math.ceil(xRight) - 1;
-				
+				float dz = (zRight - zLeft)/(endX - startX + 1);
+				float z = zLeft;
 				for(int x=startX; x <= endX; x++)
 				{
-					gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+					String key = x+""+y;
+					Float zRecord = zBuffer.get(key);
+					if(zRecord == null || zRecord > z)
+					{
+						gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+						zBuffer.put(key, z);
+					}
+					
+					z += dz;
 				}
 				
 				xLeft += dxLeft;
@@ -152,23 +163,35 @@ public class TriangleRenderer {
 			float xLeft = right? p1.x+dy21*dxLeft : p2.x;
 			float xRight = right ? p2.x : p1.x+dy21*dxRight;
 			
-			float zLeft = right ? p1.z+dy21*dzLeft : p2.z;
-			float zRight = right ? p2.z: p1.z+dzRight*dy21;
+			float zLeft = right ? p1.w+dy21*dzLeft : p2.w;
+			float zRight = right ? p2.w: p1.w+dzRight*dy21;
 			
 			dxLeft = right ? dx31/dy31 : dx32/dy32;
 			dxRight = right ? dx32/dy32 : dx31/dy31;
 			
-			dzLeft = right ? dz31/dy31 : dz21/dy21;
-			dzRight = right ? dz21/dy21 : dz31/dy31;
+			float dz32 = p3.w - p2.w;
+			
+			dzLeft = right ? dz31/dy31 : dz32/dy32;
+			dzRight = right ? dz32/dy32 : dz31/dy31;
 			
 			for(int y=startY; y <= endY; y++)
 			{
 				int startX = (int)Math.ceil(xLeft);
 				int endX = (int)Math.ceil(xRight) - 1;
 				
+				float dz = (zRight - zLeft)/(endX - startX + 1);
+				float z = zLeft;
 				for(int x=startX; x <= endX; x++)
 				{
-					gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+					String key = x+""+y;
+					Float zRecord = zBuffer.get(key);
+					if(zRecord == null || zRecord > z)
+					{
+						gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+						zBuffer.put(key, z);
+					}
+					
+					z += dz;
 				}
 				
 				xLeft += dxLeft;
@@ -179,7 +202,7 @@ public class TriangleRenderer {
 			}	
 		}
 	}
-	
+	/*
 	public void fillTriangle2(Vertex3d v1, Vertex3d v2, Vertex3d v3, Vector3d color)
 	{
 		Logger.startLog("fillTriangle");
@@ -252,4 +275,5 @@ public class TriangleRenderer {
 		
 		Logger.endLog();
 	}
+	*/
 }
