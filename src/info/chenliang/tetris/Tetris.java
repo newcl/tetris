@@ -4,6 +4,7 @@ import info.chenliang.debug.Assert;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.fatrock.Camera;
 import info.chenliang.fatrock.TriangleRenderer;
+import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.tetris.sound.SoundManager;
 
 import java.util.ArrayList;
@@ -124,6 +125,11 @@ public class Tetris implements Runnable{
 		
 		camera = new Camera(new Vector3d(0, 0, -100), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 120, 10, 1000, containerWidth, containerHeight, leftMarginWidth, topMarginHeight);
 		triangleRenderer = new TriangleRenderer(gameCanvas);
+		
+		v1 = new Vertex3d(new Vector3d(100, 30, 1.0f), color);
+		v2 = new Vertex3d(new Vector3d(30, 150, 1.0f), color);
+		v3 = new Vertex3d(new Vector3d(200, 300, 1.0f), color);
+		color = new Vector3d(0, 0, 0xff);
 	}
 	
 	public void run() {
@@ -273,6 +279,9 @@ public class Tetris implements Runnable{
 		}
 	}
 	
+	Vertex3d v1, v2,v3;
+	Vector3d color;
+	
 	public void gameDraw(){
 		boolean success = gameCanvas.startDraw();
 		if(success)
@@ -329,6 +338,8 @@ public class Tetris implements Runnable{
 			{
 				gameCanvas.drawText("Paused", leftMarginWidth + containerWidth/2, topMarginHeight+containerHeight/2, 0xffffffff, GameCanvas.ALIGN_CENTER);
 			}
+			
+			//triangleRenderer.fillTriangle(v1, v2, v3, color);
 			
 			gameCanvas.endDraw();
 		}

@@ -30,7 +30,7 @@ public class GameObject3d extends GameObject{
 		this.triangleRenderer = triangleRenderer;
 		
 		points = new Vertex3d[8];
-		float length = 10;
+		float length = 20;
 		
 		points[0] = new Vertex3d(new Vector3d(0, 0, 0), new Vector3d(0, 0,0xff));
 		points[1] = new Vertex3d(new Vector3d(length, 0, 0), new Vector3d(0, 0, 0xff));
@@ -65,7 +65,7 @@ public class GameObject3d extends GameObject{
 		
 		triangles.clear();
 		
-		Vector3d n = new Vector3d(1,1,1);
+		Vector3d n = new Vector3d(0,1,0);
 		n.normalize();
 		Matrix3x3 r = Matrix3x3.buildRotateMatrix(n, angle);
 		
@@ -135,15 +135,16 @@ public class GameObject3d extends GameObject{
 	
 	private void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3, Vector3d color)
 	{
-		Vector3d v12 = v2.position.minus(v1.position);
-		Vector3d v13 = v3.position.minus(v1.position);
+		triangles.add(new Triangle(v1, v2, v3, color));
 		
-		Vector3d v = v12.cross(v13);
-		float dot = v.dot(new Vector3d(0,0,1));
-		if(dot < 0)
-		{
-			triangles.add(new Triangle(v1, v2, v3, color));
-		}
+//		Vector3d v12 = v2.position.minus(v1.position);
+//		Vector3d v13 = v3.position.minus(v1.position);
+//		Vector3d v = v12.cross(v13);
+//		float dot = v.dot(new Vector3d(0,0,1));
+//		if(dot < 0)
+//		{
+//			triangles.add(new Triangle(v1, v2, v3, color));
+//		}
 	}
 	
 	public void draw(GameCanvas canvas) {
