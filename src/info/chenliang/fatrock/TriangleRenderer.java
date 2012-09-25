@@ -105,7 +105,14 @@ public class TriangleRenderer {
 						int green = (int)(a * c3.y + b * c1.y + c * c2.y);
 						int blue = (int)(a * c3.z + b * c1.z + c * c2.z);
 
-						driverSetPixel(x, y, new Vector3d(red, green, blue), z);	
+						//driverSetPixel(x, y, new Vector3d(red, green, blue), z);
+						String key = x+""+y;
+						Float zf = zBuffer.get(key);
+						if(zf == null || zf > z)
+						{
+							gameCanvas.fillRect(x, y, x+1, y+1, red<<16|green<<8|blue, 0xff);			
+							zBuffer.put(key, z);
+						}
 					}
 					
 				}

@@ -122,7 +122,7 @@ public class Tetris implements Runnable{
 		soundManager = new SoundManager();
 		soundManager.init();
 		
-		camera = new Camera(new Vector3d(0, 0, -100), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 120, 10, 1000, gameCanvas.getWidth(), gameCanvas.getHeight(), 0, 0);
+		camera = new Camera(new Vector3d(0, 0, -100), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 120, 10, 1000, containerWidth, containerHeight, leftMarginWidth, topMarginHeight);
 		triangleRenderer = new TriangleRenderer(gameCanvas);
 	}
 	
@@ -701,13 +701,11 @@ public class Tetris implements Runnable{
 				BlockContainerCell containerCell = containerRow.getColumn(col);
 				
 				GameObject gameObject = new GameObject3d(xOffset, yOffset, 0, containerCell.getColor(), camera, triangleRenderer);
-				gameObjects.add(gameObject);
+				//gameObjects.add(gameObject);
 				xOffset += cellSize;
 			}
 			
 		}
-		
-		
 		
 	}
 	
@@ -715,7 +713,7 @@ public class Tetris implements Runnable{
 	{
 		if(gameObjects.size() == 0)
 		{
-			GameObject gameObject = new GameObject3d(100, 100, 0, 0xff,camera, triangleRenderer);
+			GameObject gameObject = new GameObject3d(30, 30, 0, 0xff, camera, triangleRenderer);
 			gameObjects.add(gameObject);
 		}
 		

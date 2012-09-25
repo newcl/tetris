@@ -125,8 +125,8 @@ public class Vector3d {
 		//w = v_|_ X n
 		//v' = w*sinx + v_|_cosx
 		Vector3d vParallel = new Vector3d(n);
-		vParallel.scale(this.dot(n));
-		Vector3d vPerpendicular = this.minus(vParallel);
+		vParallel.scale(dot(n));
+		Vector3d vPerpendicular = minus(vParallel);
 		
 		Vector3d w = n.cross(vPerpendicular);
 		float angleInRadian = (float)(Math.toRadians(angle));
@@ -136,15 +136,15 @@ public class Vector3d {
 		w.scale(sinx);
 		vPerpendicular.scale(cosx);
 		
-		return w.add(vPerpendicular);
+		return w.add(vPerpendicular).add(vParallel);
 	}
 	
 	public Vector3d scaleAlong(Vector3d n, float k)
 	{
 		Vector3d vParallel = new Vector3d(n);
-		vParallel.scale(this.dot(n));
+		vParallel.scale(dot(n));
 		
-		Vector3d vPerpendicular = this.minus(vParallel);
+		Vector3d vPerpendicular = minus(vParallel);
 		
 		vParallel.scale(k);
 		

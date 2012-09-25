@@ -44,10 +44,6 @@ public class Camera {
 		updateWorldToCameraTransform();
 		updateCameraToProjectionTransform();
 		updateProjectionToScreenTransform();
-		
-		Matrix4x4 m = worldToCameraTransform.multiply(cameraToProjectionTransform);
-		m = m.multiply(projectionToScreenTransform);
-		
 	}
 	
 	private void updateProjectionToScreenTransform()
@@ -59,7 +55,7 @@ public class Camera {
 		float screenHeightHalf = screenHeight*1.0f/2;
 		
 		projectionToScreenTransform.set(screenWidthHalf, 0, 0, screenWidthHalf + screenXOffset, 
-										0, -screenHeightHalf, 0, screenHeightHalf + screenXOffset, 
+										0, -screenHeightHalf, 0, screenHeightHalf + screenYOffset, 
 										0, 0, 1, 0, 
 										0, 0, 0, 1);
 	}
@@ -92,7 +88,7 @@ public class Camera {
 	
 	private void updateCameraToProjectionTransform()
 	{
-		float viewAngleInRadian = (float)(Math.toRadians(viewAngle));
+		float viewAngleInRadian = (float)(Math.toRadians(viewAngle/2));
 		Assert.judge(!Precision.getInstance().equals(viewAngleInRadian, 0.0f), "View angle should be greater than zero!");
 		
 		float d = (float)(1 / Math.tan(viewAngleInRadian));

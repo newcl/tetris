@@ -12,6 +12,15 @@ public class Matrix3x3 {
 			0, 0, 1);
 	}
 	
+	public Matrix3x3(float m00, float m01, float m02,
+					 float m10, float m11, float m12,
+					 float m20, float m21, float m22)
+	{
+		set(m00, m01, m02,
+			m10, m11, m12,
+			m20, m21, m22);
+	}
+	
 	public Matrix3x3(Vector3d xAxis, Vector3d yAxis, Vector3d zAxis)
 	{
 		set(xAxis, yAxis, zAxis);
@@ -23,7 +32,11 @@ public class Matrix3x3 {
 		Vector3d yAxis = new Vector3d(0, 1, 0).rotateAround(n, angle);
 		Vector3d zAxis = new Vector3d(0, 0, 1).rotateAround(n, angle);
 		
-		return new Matrix3x3(xAxis, yAxis, zAxis);
+		Matrix3x3 m = new Matrix3x3();
+		m.set(xAxis.x, yAxis.x, zAxis.x,
+			  xAxis.y, yAxis.y, zAxis.y,
+			  xAxis.z, yAxis.z, zAxis.z);
+		return m;
 	}
 	
 	public static Matrix3x3 buildScaleMatrix(Vector3d n, float k)
