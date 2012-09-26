@@ -61,16 +61,16 @@ public class TriangleRenderer {
 		Vector4d p2 = v2.position;
 		Vector4d p3 = v3.position;
 		
-		float dx31_ = p3.x - p1.x;
-		float dy31_ = p3.y - p1.y;
-		
-		float dx21_ = p2.x - p1.x;
-		float dy21_ = p2.y - p1.y;
-		
-		if(dx31_*dy21_ - dy31_*dx21_ > 0)
-		{
-			return;
-		}
+//		float dx31_ = p3.x - p1.x;
+//		float dy31_ = p3.y - p1.y;
+//		
+//		float dx21_ = p2.x - p1.x;
+//		float dy21_ = p2.y - p1.y;
+//		
+//		if(dx31_*dy21_ - dy31_*dx21_ > 0)
+//		{
+//			return;
+//		}
 		
 		if(p1.y > p2.y)
 		{
