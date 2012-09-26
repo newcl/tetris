@@ -114,92 +114,116 @@ public class TriangleRenderer {
 			int startY = (int)Math.ceil(p1.y);
 			int endY = (int)Math.ceil(p2.y) - 1;
 			
-			dxLeft = right ? dx31/dy31 : dx21/dy21;
-			dxRight = right ? dx21/dy21 : dx31/dy31;
-			
-			dzLeft = right ? dz31/dy31 : dx21/dy21;
-			dzRight = right ? dz21/dy21 : dz31/dy31;
-
-			float zLeft = p1.w;
-			float zRight = p1.w;
-			
-			float xLeft = p1.x;
-			float xRight = p1.x;
-			
-			for(int y=startY; y <= endY; y++)
+			int ySpan = endY - startY + 1;
+			if(ySpan > 0)
 			{
-				int startX = (int)Math.ceil(xLeft);
-				int endX = (int)Math.ceil(xRight) - 1;
-				float dz = (zRight - zLeft)/(endX - startX + 1);
-				float z = zLeft;
-				for(int x=startX; x <= endX; x++)
+				dxLeft = right ? dx31/dy31 : dx21/dy21;
+				dxRight = right ? dx21/dy21 : dx31/dy31;
+				
+				dzLeft = right ? dz31/dy31 : dx21/dy21;
+				dzRight = right ? dz21/dy21 : dz31/dy31;
+
+				float zLeft = p1.w;
+				float zRight = p1.w;
+				
+				float xLeft = p1.x;
+				float xRight = p1.x;
+				
+				for(int y=startY; y <= endY; y++)
 				{
-					String key = x+""+y;
-					Float zRecord = zBuffer.get(key);
-					if(zRecord == null || zRecord > z)
+					int startX = (int)Math.ceil(xLeft);
+					int endX = (int)Math.ceil(xRight) - 1;
+					int xSpan = endX - startX + 1;
+					
+					if(xSpan > 0)
 					{
-						gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
-						zBuffer.put(key, z);
+						float dz = (zRight - zLeft) / xSpan;
+						float z = zLeft;
+						for(int x=startX; x <= endX; x++)
+						{
+							String key = x+""+y;
+							Float zRecord = zBuffer.get(key);
+							if(zRecord == null || zRecord > z)
+							{
+								gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+								zBuffer.put(key, z);
+							}
+							
+							z += dz;
+						}
 					}
 					
-					z += dz;
+					xLeft += dxLeft;
+					xRight += dxRight;
+					
+					zLeft += dzLeft;
+					zRight += dzRight;
 				}
+			}
+			
 				
-				xLeft += dxLeft;
-				xRight += dxRight;
-				
-				zLeft += dzLeft;
-				zRight += dzRight;
-			}	
 		}
 		
 		float dy32 = p3.y - p2.y;
 		if(dy32 > 0.0f)
 		{
+			if(dy31 == 0.0f)
+			{
+				throw new RuntimeException("render bottom error");
+			}
+			
 			int startY = (int)Math.ceil(p2.y);
 			int endY = (int)Math.ceil(p3.y) - 1;
-			float dx32 = p3.x - p2.x;
-			
-			float xLeft = right? p1.x+dy21*dxLeft : p2.x;
-			float xRight = right ? p2.x : p1.x+dy21*dxRight;
-			
-			float zLeft = right ? p1.w+dy21*dzLeft : p2.w;
-			float zRight = right ? p2.w: p1.w+dzRight*dy21;
-			
-			dxLeft = right ? dx31/dy31 : dx32/dy32;
-			dxRight = right ? dx32/dy32 : dx31/dy31;
-			
-			float dz32 = p3.w - p2.w;
-			
-			dzLeft = right ? dz31/dy31 : dz32/dy32;
-			dzRight = right ? dz32/dy32 : dz31/dy31;
-			
-			for(int y=startY; y <= endY; y++)
+			int ySpan = endY - startY + 1;
+			if(ySpan > 0)
 			{
-				int startX = (int)Math.ceil(xLeft);
-				int endX = (int)Math.ceil(xRight) - 1;
+				float dx32 = p3.x - p2.x;
 				
-				float dz = (zRight - zLeft)/(endX - startX + 1);
-				float z = zLeft;
-				for(int x=startX; x <= endX; x++)
+				float xLeft = right? p1.x+dy21*dxLeft : p2.x;
+				float xRight = right ? p2.x : p1.x+dy21*dxRight;
+				
+				float zLeft = right ? p1.w+dy21*dzLeft : p2.w;
+				float zRight = right ? p2.w: p1.w+dzRight*dy21;
+				
+				dxLeft = right ? dx31/dy31 : dx32/dy32;
+				dxRight = right ? dx32/dy32 : dx31/dy31;
+				
+				float dz32 = p3.w - p2.w;
+				
+				dzLeft = right ? dz31/dy31 : dz32/dy32;
+				dzRight = right ? dz32/dy32 : dz31/dy31;
+				
+				for(int y=startY; y <= endY; y++)
 				{
-					String key = x+""+y;
-					Float zRecord = zBuffer.get(key);
-					if(zRecord == null || zRecord > z)
+					int startX = (int)Math.ceil(xLeft);
+					int endX = (int)Math.ceil(xRight) - 1;
+					int xSpan = endX - startX + 1;
+					
+					if(xSpan > 0)
 					{
-						gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
-						zBuffer.put(key, z);
+						float dz = (zRight - zLeft)/ xSpan;
+						float z = zLeft;
+						for(int x=startX; x <= endX; x++)
+						{
+							String key = x+""+y;
+							Float zRecord = zBuffer.get(key);
+							if(zRecord == null || zRecord > z)
+							{
+								gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+								zBuffer.put(key, z);
+							}
+							
+							z += dz;
+						}
 					}
 					
-					z += dz;
-				}
-				
-				xLeft += dxLeft;
-				xRight += dxRight;
-				
-				zLeft += dzLeft;
-				zRight += dzRight;
-			}	
+					xLeft += dxLeft;
+					xRight += dxRight;
+					
+					zLeft += dzLeft;
+					zRight += dzRight;
+				}	
+			}
 		}
 	}
 	/*

@@ -102,7 +102,7 @@ public class GameObject3d extends GameObject{
 			float z = v2.w;
 			v2.w /= v2.w;
 			v2 = camera.getProjectionToScreenTransform().transform(v2);
-			v2.w = z;
+			v2.w = z*32767;
 			transformedPoints[i].position = v2;
 		}
 		
