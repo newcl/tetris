@@ -63,4 +63,26 @@ public class Matrix4x4 {
 		
 		return result;
 	}
+	
+	public Vector4d getRow(int row)
+	{
+		if(row == 0)
+		{
+			return new Vector4d(m00, m01, m02, m03);
+		}
+		else if(row == 1)
+		{
+			return new Vector4d(m10, m11, m12, m13);
+		}
+		else if(row == 2)
+		{
+			return new Vector4d(m20, m21, m22, m23);
+		}
+		else if(row == 3)
+		{
+			return new Vector4d(m30, m31, m32, m33);
+		}
+		
+		throw new RuntimeException("Only row index 0, 1, 2 ,3 are valid row index.");
+	}
 }

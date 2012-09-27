@@ -2,7 +2,6 @@ package info.chenliang.fatrock;
 
 import info.chenliang.debug.Assert;
 import info.chenliang.ds.Matrix4x4;
-import info.chenliang.ds.Plane3d;
 import info.chenliang.ds.Precision;
 import info.chenliang.ds.Vector3d;
 
@@ -20,6 +19,8 @@ public class Camera {
 	private Matrix4x4 projectionToScreenTransform;
 	private int screenWidth, screenHeight;
 	private int screenXOffset, screenYOffset;
+	
+	private ViewFrustum viewFrustum;
 	
 	public Camera(Vector3d position, Vector3d lookAt, Vector3d up,
 			float viewAngle, float nearZ, float farZ, 
@@ -40,10 +41,14 @@ public class Camera {
 		worldToCameraTransform = new Matrix4x4();
 		cameraToProjectionTransform = new Matrix4x4();
 		projectionToScreenTransform = new Matrix4x4();
+		viewFrustum = new ViewFrustum();
+		
 		
 		updateWorldToCameraTransform();
 		updateCameraToProjectionTransform();
 		updateProjectionToScreenTransform();
+		
+		viewFrustum.update(cameraToProjectionTransform.multiply(worldToCameraTransform));
 	}
 	
 	private void updateProjectionToScreenTransform()

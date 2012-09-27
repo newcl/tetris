@@ -45,4 +45,17 @@ public class Vector4d {
 	{
 		return new Vector3d(x, y, z);
 	}
+	
+	public Vector4d add(Vector4d v)
+	{
+		return new Vector4d(x+v.x, y+v.y, z+v.z, w+v.w);
+	}
+	
+	public void scale(float factor)
+	{
+		x *= factor;
+		y *= factor;
+		z *= factor;
+		w *= factor;
+	}
 }
