@@ -1,7 +1,5 @@
 package info.chenliang.fatrock;
 
-import info.chenliang.debug.Logger;
-import info.chenliang.ds.Bounds;
 import info.chenliang.ds.Line2d;
 import info.chenliang.ds.Precision;
 import info.chenliang.ds.Vector3d;

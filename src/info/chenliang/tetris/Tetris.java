@@ -79,7 +79,9 @@ public class Tetris implements Runnable{
 	private SoundManager soundManager;
 	private Camera camera;
 	private TriangleRenderer triangleRenderer;
-	
+	private float near, far;
+	private float viewAngle;
+	private float blockZ;
 	public Tetris(GameCanvas gameCanvas)
 	{
 		this.gameCanvas = gameCanvas;
@@ -123,7 +125,12 @@ public class Tetris implements Runnable{
 		soundManager = new SoundManager();
 		soundManager.init();
 		
-		camera = new Camera(new Vector3d(0, 0, -60), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 90, 10, 200, containerWidth, containerHeight, leftMarginWidth, topMarginHeight);
+		viewAngle = 90;
+		near = 10;
+		far = 200;
+		blockZ = near + (far - near)/2;
+		int screenSize = (int)(blockZ - cellSize/2)*2;
+		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, screenSize, screenSize, 0, 0);
 		triangleRenderer = new TriangleRenderer(gameCanvas);
 		
 	}
@@ -706,10 +713,14 @@ public class Tetris implements Runnable{
 			for(int col=0; col < blockContainer.getNumCols(); col++)
 			{
 				BlockContainerCell containerCell = containerRow.getColumn(col);
+				int dx = camera.getScreenWidth()/2-cellSize/2;
+				int dy = camera.getScreenHeight()/2-cellSize/2;
+				GameObject gameObject = new GameObject3d(xOffset-dx, yOffset-dy, blockZ, containerCell.getColor(), cellSize, camera, triangleRenderer);
+				gameObjects.add(gameObject);
 				
-				GameObject gameObject = new GameObject3d(xOffset, yOffset, 0, containerCell.getColor(), camera, triangleRenderer);
-				//gameObjects.add(gameObject);
 				xOffset += cellSize;
+				
+				return;
 			}
 			
 		}
@@ -718,12 +729,6 @@ public class Tetris implements Runnable{
 	
 	private void tickGameObjects(int timeElapsed)
 	{
-		if(gameObjects.size() == 0)
-		{
-			GameObject gameObject = new GameObject3d(0, 0, 0, 0xff, camera, triangleRenderer);
-			gameObjects.add(gameObject);
-		}
-		
 		for(int i=0;i < gameObjects.size();i++)
 		{
 			GameObject gameObject = gameObjects.get(i);

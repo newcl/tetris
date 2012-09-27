@@ -51,6 +51,13 @@ public class Camera {
 		viewFrustum.update(cameraToProjectionTransform.multiply(worldToCameraTransform));
 	}
 	
+	public void setScreenOffsets(int screenXOffset, int screenYOffset)
+	{
+		this.screenXOffset = screenXOffset;
+		this.screenYOffset = screenYOffset;
+		updateProjectionToScreenTransform();
+	}
+	
 	private void updateProjectionToScreenTransform()
 	{
 		//x' = screenWidth/2 * x + screenWidth/2 + screenXOffset;
@@ -134,5 +141,21 @@ public class Camera {
 	
 	public Matrix4x4 getWorldToCameraTransform() {
 		return worldToCameraTransform;
+	}
+
+	public int getScreenWidth() {
+		return screenWidth;
+	}
+
+	public void setScreenWidth(int screenWidth) {
+		this.screenWidth = screenWidth;
+	}
+
+	public int getScreenHeight() {
+		return screenHeight;
+	}
+
+	public void setScreenHeight(int screenHeight) {
+		this.screenHeight = screenHeight;
 	}
 }
