@@ -82,6 +82,9 @@ public class Tetris implements Runnable{
 	private float near, far;
 	private float viewAngle;
 	private float blockZ;
+	private float scoreInfoX, scoreInfoY;
+	private int screenSize;
+	
 	public Tetris(GameCanvas gameCanvas)
 	{
 		this.gameCanvas = gameCanvas;
@@ -129,10 +132,9 @@ public class Tetris implements Runnable{
 		near = 10;
 		far = 200;
 		blockZ = near + (far - near)/2;
-		int screenSize = (int)(blockZ - cellSize/2)*2;
+		screenSize = (int)(blockZ - cellSize/2)*2;
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, screenSize, screenSize, 0, 0);
 		triangleRenderer = new TriangleRenderer(gameCanvas);
-		
 	}
 	
 	public void run() {
@@ -142,9 +144,19 @@ public class Tetris implements Runnable{
 			long currentTime = System.currentTimeMillis();
 			int timeElapsed = (int)(currentTime - lastTickTime);
 
+			//long st = System.currentTimeMillis();
 			gameTick(timeElapsed);
+			//long tt = System.currentTimeMillis() - st;
+			//Log.d("info.chenliang.tetris", "tick " + tt);
+			//st = System.currentTimeMillis();
 			gameDraw();				
+			//tt = System.currentTimeMillis() - st;
+			//Log.d("info.chenliang.tetris", "draw " + tt);
 			removeDeadGameObjects();
+			//st = System.currentTimeMillis();
+			
+//			tt = System.currentTimeMillis() - st;
+//			Log.d("info.chenliang.tetris", "bitmap " + tt);
 			
 			lastTickTime = currentTime;
 			synchronized (this) {
@@ -519,6 +531,8 @@ public class Tetris implements Runnable{
 		
 		yOffset += cellSize * 4 + 4;
 		gameCanvas.drawText("Score:" + currentScore, xOffset + 8, yOffset + fontHeight, 0xffffffff, GameCanvas.ALIGN_LEFT);
+		scoreInfoX = xOffset + 8;
+		scoreInfoY = yOffset + fontHeight;
 	}
 	
 	private void drawBlockInUi(Block block, int x, int y)
@@ -715,12 +729,22 @@ public class Tetris implements Runnable{
 				BlockContainerCell containerCell = containerRow.getColumn(col);
 				int dx = camera.getScreenWidth()/2-cellSize/2;
 				int dy = camera.getScreenHeight()/2-cellSize/2;
-				GameObject gameObject = new GameObject3d(xOffset-dx, yOffset-dy, blockZ, containerCell.getColor(), cellSize, camera, triangleRenderer);
+				GameObject3d gameObject = new GameObject3d(xOffset-dx, yOffset-dy, blockZ, containerCell.getColor(), cellSize, camera, triangleRenderer);
+				float finalX = scoreInfoX-screenSize/2; 
+				float finalY = scoreInfoY-screenSize/2;
+				
+				float middleX = gameObject.getxOffset() + (finalX - gameObject.getxOffset())/2+randomSign()*((float)Math.random()*10);
+				float middleY = gameObject.getyOffset() + (finalY - gameObject.getyOffset())/2+randomSign()*((float)Math.random()*10);
+				
+				gameObject.getPath().addPosition(new Vector3d(middleX, middleY, gameObject.getZ() - (float)Math.random()*20));
+				gameObject.getPath().addPosition(new Vector3d(finalX, finalY, gameObject.getZ()));
+				
+				gameObject.initPath();
 				gameObjects.add(gameObject);
 				
 				xOffset += cellSize;
 				
-				return;
+				//return;
 			}
 			
 		}

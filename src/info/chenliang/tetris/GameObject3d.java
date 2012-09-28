@@ -1,6 +1,5 @@
 package info.chenliang.tetris;
 
-import info.chenliang.debug.Logger;
 import info.chenliang.ds.Matrix3x3;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
@@ -21,6 +20,12 @@ public class GameObject3d extends GameObject{
 	protected List<Triangle> triangles;
 	private float size;
 	private int xOffset, yOffset;
+	private GameObject3dPath path;
+	private int pathIndex;
+	private float xOffsetStep, yOffsetStep;
+	private float zStep;
+	private Vector3d colorVector;
+	
 	public GameObject3d(int xOffset, int yOffset, float z, int color, float size, Camera camera, TriangleRenderer triangleRenderer)
 	{
 		this.x = 0;
@@ -56,19 +61,46 @@ public class GameObject3d extends GameObject{
 			points[i].position.z -= size /2;
 		}
 		
-		lifeTime = 200000000;
+		lifeTime = 20000;
 		
 		triangles = new ArrayList<Triangle>();
+		path = new GameObject3dPath();
+		colorVector = new Vector3d((color&0xff0000)>>16, (color&0xff00)>>8, color&0xff);
+	}
+	
+	public void initPath()
+	{
+		float time = lifeTime/path.elements.size();
+		for(int i=0;i < path.elements.size();i++)
+		{
+			GameObject3dPathElement element = path.elements.get(i);
+			element.time = time;
+		}
+		
+		initPathSteps();
+	}
+	
+	private void initPathSteps()
+	{
+		if(path != null & pathIndex < path.elements.size())
+		{
+			GameObject3dPathElement element = path.elements.get(pathIndex);
+			xOffsetStep = (element.position.x - xOffset)/ element.time;
+			yOffsetStep = (element.position.y - yOffset)/ element.time;
+			
+			zStep = (element.position.z - z)/element.time;
+		}
 	}
 	
 	int angle;
 	public void tick(int timeElapsed) {
-		Logger.startLog("3d tick");
-		
 		lifeTime -= timeElapsed;
 		
 		triangles.clear();
-		
+
+		xOffset += xOffsetStep*timeElapsed;
+		yOffset += yOffsetStep*timeElapsed;
+		//z+= zStep;
 		camera.setScreenOffsets(xOffset, yOffset);
 		
 		Vector3d n = new Vector3d(1,1,1);
@@ -96,10 +128,20 @@ public class GameObject3d extends GameObject{
 			transformedPoints[i].position = v2;
 		}
 		
-		angle += 5;
+		angle += 10 + Math.random()*25;
 		angle %= 360;
 		
-		Logger.endLog();
+		GameObject3dPathElement element = path.elements.get(pathIndex);
+		element.time -= timeElapsed;
+		if(element.time <= 0)
+		{
+			xOffset = (int)element.position.x;
+			yOffset = (int)element.position.y;
+			z = element.position.z;
+			
+			pathIndex++;
+			initPathSteps();
+		}
 	}
 	
 	int count;
@@ -186,7 +228,52 @@ public class GameObject3d extends GameObject{
 		}
 		*/
 		
+		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[3], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[2], transformedPoints[3], colorVector);
 		
+		triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[6], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[4], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[5], transformedPoints[4], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[5], colorVector);
+		
+		triangleRenderer.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[0], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[5], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[4], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[4], transformedPoints[5], colorVector);
+		
+		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[6], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[5], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[2], colorVector);
+		
+		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[2], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[7], transformedPoints[2], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[3], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[6], transformedPoints[2], colorVector);
+		
+		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[4], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], colorVector);
+		
+		triangleRenderer.drawLine3d(transformedPoints[0].position.degenerate(), transformedPoints[1].position.degenerate(), 0);
+		triangleRenderer.drawLine3d(transformedPoints[1].position.degenerate(), transformedPoints[2].position.degenerate(), 0);
+		triangleRenderer.drawLine3d(transformedPoints[2].position.degenerate(), transformedPoints[3].position.degenerate(), 0);
+		triangleRenderer.drawLine3d(transformedPoints[3].position.degenerate(), transformedPoints[0].position.degenerate(), 0);
+		
+		triangleRenderer.drawLine3d(transformedPoints[4].position.degenerate(), transformedPoints[5].position.degenerate(), 0);
+		triangleRenderer.drawLine3d(transformedPoints[5].position.degenerate(), transformedPoints[6].position.degenerate(), 0);
+		triangleRenderer.drawLine3d(transformedPoints[6].position.degenerate(), transformedPoints[7].position.degenerate(), 0);
+		triangleRenderer.drawLine3d(transformedPoints[7].position.degenerate(), transformedPoints[4].position.degenerate(), 0);
+		
+		triangleRenderer.drawLine3d(transformedPoints[0].position.degenerate(), transformedPoints[4].position.degenerate(), 0);
+		triangleRenderer.drawLine3d(transformedPoints[1].position.degenerate(), transformedPoints[5].position.degenerate(), 0);
+		triangleRenderer.drawLine3d(transformedPoints[2].position.degenerate(), transformedPoints[6].position.degenerate(), 0);
+		triangleRenderer.drawLine3d(transformedPoints[3].position.degenerate(), transformedPoints[7].position.degenerate(), 0);
+//		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[7], transformedPoints[4], colorVector);
+//		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[0], transformedPoints[3], colorVector);
+		
+		/*
 		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], new Vector3d(0xff,0,0));
 		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2], new Vector3d(0xff,0,0));
 //		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[3], new Vector3d(0xff,0,0));
@@ -216,6 +303,40 @@ public class GameObject3d extends GameObject{
 		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], new Vector3d(0,0xff,0xff));
 //		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[7], transformedPoints[4], new Vector3d(0,0xff,0xff));
 //		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[0], transformedPoints[3], new Vector3d(0,0xff,0xff));
-		
+		*/
 	}
+	
+	public GameObject3dPath getPath() {
+		return path;
+	}
+	public void setPath(GameObject3dPath path) {
+		this.path = path;
+	}
+	
+	
+	public float getZ() {
+		return z;
+	}
+
+	public void setZ(float z) {
+		this.z = z;
+	}
+
+	public int getxOffset() {
+		return xOffset;
+	}
+
+	public void setxOffset(int xOffset) {
+		this.xOffset = xOffset;
+	}
+
+	public int getyOffset() {
+		return yOffset;
+	}
+
+	public void setyOffset(int yOffset) {
+		this.yOffset = yOffset;
+	}
+	
+	
 }

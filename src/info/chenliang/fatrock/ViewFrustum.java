@@ -34,11 +34,11 @@ public class ViewFrustum {
 		row2.scale(-1);
 		v = row1.add(row2);
 		
-		left.n = v.degenerate();
-		left.d = v.w;
-		reciprocal = 1/left.n.length(); 
-		left.n.scale(reciprocal);
-		left.d *= reciprocal;
+		left.normal = v.degenerate();
+		left.distance = v.w;
+		reciprocal = 1/left.normal.length(); 
+		left.normal.scale(reciprocal);
+		left.distance *= reciprocal;
 		
 		//right plane set up
 		row1 = m.getRow(0);
@@ -46,11 +46,11 @@ public class ViewFrustum {
 		row2.scale(-1);
 		v = row1.add(row2);
 		
-		right.n = v.degenerate();
-		right.d = v.w;
-		reciprocal = 1/right.n.length(); 
-		right.n.scale(reciprocal);
-		right.d *= reciprocal;
+		right.normal = v.degenerate();
+		right.distance = v.w;
+		reciprocal = 1/right.normal.length(); 
+		right.normal.scale(reciprocal);
+		right.distance *= reciprocal;
 		
 		//top plane set up
 		row1 = m.getRow(1);
@@ -58,11 +58,11 @@ public class ViewFrustum {
 		row2.scale(-1);
 		v = row1.add(row2);
 		
-		top.n = v.degenerate();
-		top.d = v.w;
-		reciprocal = 1/top.n.length(); 
-		top.n.scale(reciprocal);
-		top.d *= reciprocal;
+		top.normal = v.degenerate();
+		top.distance = v.w;
+		reciprocal = 1/top.normal.length(); 
+		top.normal.scale(reciprocal);
+		top.distance *= reciprocal;
 		
 		//bottom plane set up
 		row1 = m.getRow(1);
@@ -71,21 +71,21 @@ public class ViewFrustum {
 		row2.scale(-1);
 		v = row1.add(row2);
 		
-		bottom.n = v.degenerate();
-		bottom.d = v.w;
-		reciprocal = 1/bottom.n.length(); 
-		bottom.n.scale(reciprocal);
-		bottom.d *= reciprocal;
+		bottom.normal = v.degenerate();
+		bottom.distance = v.w;
+		reciprocal = 1/bottom.normal.length(); 
+		bottom.normal.scale(reciprocal);
+		bottom.distance *= reciprocal;
 		
 		//near plane set up
 		row1 = m.getRow(2);
 		row1.scale(-1);
 		v = row1;
-		near.n = v.degenerate();
-		near.d = v.w;
-		reciprocal = 1/near.n.length(); 
-		near.n.scale(reciprocal);
-		near.d *= reciprocal;
+		near.normal = v.degenerate();
+		near.distance = v.w;
+		reciprocal = 1/near.normal.length(); 
+		near.normal.scale(reciprocal);
+		near.distance *= reciprocal;
 		
 		//far plane set up
 		row1 = m.getRow(2);
@@ -93,10 +93,10 @@ public class ViewFrustum {
 		row2.scale(-1);
 		v = row1.add(row2);
 		
-		far.n = v.degenerate();
-		far.d = v.w;
-		reciprocal = 1/far.n.length(); 
-		far.n.scale(reciprocal);
-		far.d *= reciprocal;
+		far.normal = v.degenerate();
+		far.distance = v.w;
+		reciprocal = 1/far.normal.length(); 
+		far.normal.scale(reciprocal);
+		far.distance *= reciprocal;
 	}
 }

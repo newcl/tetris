@@ -9,6 +9,8 @@ import info.chenliang.tetris.GameCanvas;
 import java.util.HashMap;
 import java.util.Map;
 
+import android.util.Log;
+
 public class TriangleRenderer {
 	public GameCanvas gameCanvas;
 	public Map<String, Float> zBuffer;
@@ -54,22 +56,25 @@ public class TriangleRenderer {
 	
 	public void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3, Vector3d color)
 	{
+		long st = System.currentTimeMillis();
+		
 		Vector4d temp;
 		Vector4d p1 = v1.position;
 		Vector4d p2 = v2.position;
 		Vector4d p3 = v3.position;
 		
-//		float dx31_ = p3.x - p1.x;
-//		float dy31_ = p3.y - p1.y;
-//		
-//		float dx21_ = p2.x - p1.x;
-//		float dy21_ = p2.y - p1.y;
-//		
-//		if(dx31_*dy21_ - dy31_*dx21_ > 0)
-//		{
-//			return;
-//		}
+		float dx31_ = p3.x - p1.x;
+		float dy31_ = p3.y - p1.y;
 		
+		float dx21_ = p2.x - p1.x;
+		float dy21_ = p2.y - p1.y;
+		
+		if(dx31_*dy21_ - dy31_*dx21_ > 0)
+		{
+			return;
+		}
+		
+		int count=0;
 		if(p1.y > p2.y)
 		{
 			temp = p1;
@@ -154,8 +159,11 @@ public class TriangleRenderer {
 							Float zRecord = zBuffer.get(key);
 							if(zRecord == null || zRecord > z)
 							{
-								gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+								//gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+								gameCanvas.setPixel(x, y, fc);
 								zBuffer.put(key, z);
+								
+								count++;
 							}
 							
 							z += dz;
@@ -218,8 +226,10 @@ public class TriangleRenderer {
 							Float zRecord = zBuffer.get(key);
 							if(zRecord == null || zRecord > z)
 							{
-								gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+								//gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+								gameCanvas.setPixel(x, y, fc);
 								zBuffer.put(key, z);
+								count++;
 							}
 							
 							z += dz;
@@ -234,7 +244,59 @@ public class TriangleRenderer {
 				}	
 			}
 		}
+		
+//		gameCanvas.drawLine(p1.x, p1.y, p2.x, p2.y, 0xff000000);
+//		gameCanvas.drawLine(p1.x, p1.y, p3.x, p3.y, 0xff000000);
+//		gameCanvas.drawLine(p3.x, p3.y, p2.x, p2.y, 0xff000000);
+		long tt = System.currentTimeMillis() - st;
+		Log.d("info.chenliang.tetris", "interpolation:" + count + " " + tt);
 	}
+	
+	public void drawLine3d(Vector3d p1, Vector3d p2, int color)
+	{
+		Vector3d temp;
+		if(p1.y > p2.y)
+		{
+			temp = p1;
+			p1 = p2;
+			p2 = temp;
+		}
+		
+		float dy21 = p2.y - p1.y;
+		if(dy21 <= 0)
+		{
+			return;
+		}
+		
+		int topY = (int)Math.ceil(p1.y);
+		int bottomY = (int)Math.ceil(p2.y) - 1;
+		int ySpan = bottomY - topY + 1;
+		if(ySpan <= 0)
+		{
+			return;
+		}
+		float xStart = p1.x; 
+		float dx = (p2.x - p1.x) / dy21;
+		float zStart = p1.z;
+		float dz = (p2.z - p1.z) / dy21;
+		for(int y=topY; y <= bottomY; y++)
+		{
+			int x = (int)Math.ceil(xStart);
+			
+			String key = x+""+y;
+			Float zRecord = zBuffer.get(key);
+			if(zRecord == null || zRecord > zStart)
+			{
+				//gameCanvas.fillRect(x, y, x+1, y+1, color, 0xff);
+				gameCanvas.setPixel(x, y, color);
+				zBuffer.put(key, zStart);
+			}
+			
+			xStart += dx;
+			zStart += dz;
+		}
+	}
+	
 	/*
 	public void fillTriangle2(Vertex3d v1, Vertex3d v2, Vertex3d v3, Vector3d color)
 	{
