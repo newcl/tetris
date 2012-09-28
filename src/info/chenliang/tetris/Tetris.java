@@ -134,7 +134,7 @@ public class Tetris implements Runnable{
 		blockZ = near + (far - near)/2;
 		screenSize = (int)(blockZ - cellSize/2)*2;
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, screenSize, screenSize, 0, 0);
-		triangleRenderer = new TriangleRenderer(gameCanvas);
+		triangleRenderer = new TriangleRenderer(gameCanvas, gameCanvas.getWidth(), gameCanvas.getHeight());
 	}
 	
 	public void run() {
@@ -557,7 +557,7 @@ public class Tetris implements Runnable{
 	
 	private void drawGameObjects()
 	{
-		triangleRenderer.zBuffer.clear();
+		triangleRenderer.resetZBuffer();
 		
 		for(int i=0;i < gameObjects.size();i++)
 		{
