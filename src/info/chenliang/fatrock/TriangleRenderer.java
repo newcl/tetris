@@ -1,52 +1,29 @@
 package info.chenliang.fatrock;
 
-import info.chenliang.ds.Line2d;
 import info.chenliang.ds.Precision;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
-import info.chenliang.tetris.GameCanvas;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
 
 import android.util.Log;
 
 public class TriangleRenderer {
-	public GameCanvas gameCanvas;
-	public Map<String, Float> zBuffer;
+	public PixelRenderer pixelRenderer;
+	public float[] zBuffer;
+	public int width, height;
 	
-	public TriangleRenderer(GameCanvas gameCanvas)
+	public TriangleRenderer(PixelRenderer pixelRenderer,int width, int height)
 	{
-		this.gameCanvas = gameCanvas;
-		zBuffer = new HashMap<String, Float>();
+		this.pixelRenderer = pixelRenderer;
+		this.width = width;
+		this.height = height;
+		zBuffer = new float[width*height];
 	}
 	
-	public boolean isPointOnLine(Vector3d p1, Vector3d p2, Vector3d p3)
+	public void resetZBuffer()
 	{
-		Line2d l = new Line2d(p1.x, p1.y, p2.x, p2.y);
-		
-		return l.line2dPointOnLine(p3.x, p3.y);
-	}
-	
-	public void drawLine(Vector3d p1, Vector3d p2)
-	{
-		gameCanvas.drawLine(p1.x, p1.y, p2.x, p2.y, 0xffffffff);
-	}
-	
-	private int getColor(Vector3d v)
-	{
-		return (int)v.x << 16 | (int)v.y << 8 | (int)v.z; 
-	}
-	
-	public void driverSetPixel(float x, float y, Vector3d color, float z)
-	{
-		String key = x+""+y;
-		Float zf = zBuffer.get(key);
-		if(zf == null || zf > z)
-		{
-			gameCanvas.fillRect(x, y, x+1, y+1, getColor(color), 0xff);			
-			zBuffer.put(key, z);
-		}
+		Arrays.fill(zBuffer, Float.MAX_VALUE);
 	}
 	
 	private Vector3d getRandomColor()
@@ -63,16 +40,16 @@ public class TriangleRenderer {
 		Vector4d p2 = v2.position;
 		Vector4d p3 = v3.position;
 		
-		float dx31_ = p3.x - p1.x;
-		float dy31_ = p3.y - p1.y;
-		
-		float dx21_ = p2.x - p1.x;
-		float dy21_ = p2.y - p1.y;
-		
-		if(dx31_*dy21_ - dy31_*dx21_ > 0)
-		{
-			return;
-		}
+//		float dx31_ = p3.x - p1.x;
+//		float dy31_ = p3.y - p1.y;
+//		
+//		float dx21_ = p2.x - p1.x;
+//		float dy21_ = p2.y - p1.y;
+//		
+//		if(dx31_*dy21_ - dy31_*dx21_ > 0)
+//		{
+//			return;
+//		}
 		
 		int count=0;
 		if(p1.y > p2.y)
@@ -111,8 +88,7 @@ public class TriangleRenderer {
 		float cross = dx21*dy31 - dy21*dx31;
 		if(cross == 0.0f)
 		{
-			//TODO this is not correct
-			drawLine(p3.degenerate(), p1.degenerate());
+			drawLine3d(p3.degenerate(), p1.degenerate(), 0xff000000);
 			return;
 		}
 		
@@ -155,13 +131,13 @@ public class TriangleRenderer {
 						float z = zLeft;
 						for(int x=startX; x <= endX; x++)
 						{
-							String key = x+""+y;
-							Float zRecord = zBuffer.get(key);
-							if(zRecord == null || zRecord > z)
+							int index = y*width + x;
+							
+							if(zBuffer[index]> z)
 							{
 								//gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
-								gameCanvas.setPixel(x, y, fc);
-								zBuffer.put(key, z);
+								pixelRenderer.setPixel(x, y, fc);
+								zBuffer[index] = z;
 								
 								count++;
 							}
@@ -222,13 +198,14 @@ public class TriangleRenderer {
 						float z = zLeft;
 						for(int x=startX; x <= endX; x++)
 						{
-							String key = x+""+y;
-							Float zRecord = zBuffer.get(key);
-							if(zRecord == null || zRecord > z)
+							int index = y*width + x;
+							
+							if(zBuffer[index]> z)
 							{
 								//gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
-								gameCanvas.setPixel(x, y, fc);
-								zBuffer.put(key, z);
+								pixelRenderer.setPixel(x, y, fc);
+								zBuffer[index] = z;
+								
 								count++;
 							}
 							
@@ -277,23 +254,23 @@ public class TriangleRenderer {
 		}
 		float xStart = p1.x; 
 		float dx = (p2.x - p1.x) / dy21;
-		float zStart = p1.z;
+		float z = p1.z;
 		float dz = (p2.z - p1.z) / dy21;
 		for(int y=topY; y <= bottomY; y++)
 		{
 			int x = (int)Math.ceil(xStart);
 			
-			String key = x+""+y;
-			Float zRecord = zBuffer.get(key);
-			if(zRecord == null || zRecord > zStart)
+			int index = y*width + x;
+			
+			if(zBuffer[index]> z)
 			{
-				//gameCanvas.fillRect(x, y, x+1, y+1, color, 0xff);
-				gameCanvas.setPixel(x, y, color);
-				zBuffer.put(key, zStart);
+				//gameCanvas.fillRect(x, y, x+1, y+1, fc, 0xff);
+				pixelRenderer.setPixel(x, y, color);
+				zBuffer[index] = z;
 			}
 			
 			xStart += dx;
-			zStart += dz;
+			z += dz;
 		}
 	}
 	
