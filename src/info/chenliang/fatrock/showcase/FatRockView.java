@@ -4,6 +4,7 @@ import info.chenliang.ds.Matrix3x3;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
+import info.chenliang.fatrock.DynamicZBuffer;
 import info.chenliang.fatrock.PixelRenderer;
 import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.fatrock.Vertex3d;
@@ -172,7 +173,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	public void surfaceCreated(SurfaceHolder arg0) {
 		// TODO Auto-generated method stub
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 90, 10, 150, getWidth(), getHeight(), 0, 0);
-		triangleRenderer = new TriangleRenderer(this, getWidth(), getHeight());
+		triangleRenderer = new TriangleRenderer(this, new DynamicZBuffer(getWidth(), getHeight()));
 		new Thread(this).start();
 	}
 

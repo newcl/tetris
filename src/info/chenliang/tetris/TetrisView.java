@@ -21,8 +21,9 @@ public class TetrisView extends SurfaceView implements Callback, GameCanvas{
 	private Canvas canvas;
 	private Bitmap bitmap;
 	private Canvas bc;
-	private int[] pixels;
 	private boolean ready;
+	private boolean useBitmap;
+	private int canvasWidth, canvasHeight;
 	public TetrisView(Context context) {
 		super(context);
 		setKeepScreenOn(true);
@@ -39,10 +40,14 @@ public class TetrisView extends SurfaceView implements Callback, GameCanvas{
 	}
 
 	public void surfaceCreated(SurfaceHolder holder) {
-		bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Config.ARGB_8888);
-		canvas = new Canvas(bitmap);
+		canvasWidth = getWidth(); 
+		canvasHeight = getHeight();
+		if(useBitmap)
+		{
+			bitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, Config.ARGB_8888);
+			canvas = new Canvas(bitmap);	
+		}
 		
-		//pixels = new int[getWidth()*getHeight()];
 		ready = true;
 	}
 
@@ -51,34 +56,50 @@ public class TetrisView extends SurfaceView implements Callback, GameCanvas{
 	}
 
 	public boolean startDraw() {
-		return true;
-		
-		/*
 		boolean success = false;
-		try {
-			canvas = surfaceHolder.lockCanvas();
-			boolean ac = isHardwareAccelerated();
-			//bitmap = getDrawingCache();
-			success = canvas != null;
-		} catch (Exception e) {
-			e.printStackTrace();	
+		if(useBitmap)
+		{
+			success = true;
+		}
+		else
+		{
+			try {
+				canvas = surfaceHolder.lockCanvas();
+				success = canvas != null;
+			} catch (Exception e) {
+				e.printStackTrace();	
+			}			
 		}
 		
 		return success;
-		*/
 	}
 
 	public boolean endDraw() {
 		boolean success = false;
-		
-		try {
-			Canvas viewCanvas = surfaceHolder.lockCanvas();
-			viewCanvas.drawBitmap(bitmap, 0, 0, paint);
-			surfaceHolder.unlockCanvasAndPost(viewCanvas);
-			success = true;
-		} catch (Exception e) {
-			e.printStackTrace();	
+		if(useBitmap)
+		{
+			try {
+				Canvas viewCanvas = surfaceHolder.lockCanvas();
+				viewCanvas.drawBitmap(bitmap, 0, 0, paint);
+				surfaceHolder.unlockCanvasAndPost(viewCanvas);
+
+				success = true;
+			} catch (Exception e) {
+				e.printStackTrace();	
+			}			
 		}
+		else
+		{
+			try {
+				surfaceHolder.unlockCanvasAndPost(canvas);
+				success = true;
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}	
+		}
+		
+		success = true;
 		
 		return success;
 	}
@@ -110,8 +131,9 @@ public class TetrisView extends SurfaceView implements Callback, GameCanvas{
 		canvas.clipRect(left, top, right, bottom);
 	}
 
-	public void drawText(String text, float x, float y, float color,
+	public void drawText(String text, float x, float y, int color,
 			int alignment) {
+		paint.setColor(color);
 		if(alignment == ALIGN_CENTER)
 		{
 			paint.setTextAlign(Align.CENTER);
@@ -142,15 +164,19 @@ public class TetrisView extends SurfaceView implements Callback, GameCanvas{
 	}
 
 	public void setPixel(int x, int y, int color) {
-		
 		paint.setColor(0xff000000|color);
 		paint.setStyle(Style.STROKE);
 		paint.setStrokeWidth(1);
 		paint.setStrokeCap(Cap.SQUARE);
 		
 		canvas.drawPoint(x, y, paint);
-		
-		
-		//bitmap.setPixel(x, y, 0xff000000|color);
+	}
+
+	public int getCanvasWidth() {
+		return canvasWidth;
+	}
+
+	public int getCanvasHeight() {
+		return canvasHeight;
 	}
 }

@@ -3,6 +3,7 @@ package info.chenliang.tetris;
 import info.chenliang.debug.Assert;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.fatrock.Camera;
+import info.chenliang.fatrock.DynamicZBuffer;
 import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.tetris.sound.SoundManager;
@@ -14,13 +15,14 @@ import java.util.Map;
 
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.util.Log;
 import android.view.KeyEvent;
 
 public class Tetris implements Runnable{
 	private static int ROW_COUNT = 20;
 	private static int COLUMN_COUNT = 10;
 	
-	private final static int REFRESH_INVERVAL = 50;
+	private final static int REFRESH_INVERVAL = 33;
 	
 	private Thread gameThread;
 	private long lastTickTime;
@@ -134,7 +136,7 @@ public class Tetris implements Runnable{
 		blockZ = near + (far - near)/2;
 		screenSize = (int)(blockZ - cellSize/2)*2;
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, screenSize, screenSize, 0, 0);
-		triangleRenderer = new TriangleRenderer(gameCanvas, gameCanvas.getWidth(), gameCanvas.getHeight());
+		triangleRenderer = new TriangleRenderer(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight()));
 	}
 	
 	public void run() {
@@ -144,19 +146,15 @@ public class Tetris implements Runnable{
 			long currentTime = System.currentTimeMillis();
 			int timeElapsed = (int)(currentTime - lastTickTime);
 
-			//long st = System.currentTimeMillis();
+			long st = System.currentTimeMillis();
 			gameTick(timeElapsed);
-			//long tt = System.currentTimeMillis() - st;
-			//Log.d("info.chenliang.tetris", "tick " + tt);
-			//st = System.currentTimeMillis();
+			long tt = System.currentTimeMillis() - st;
+			Log.d("info.chenliang.tetris", "tick " + tt);
+			st = System.currentTimeMillis();
 			gameDraw();				
-			//tt = System.currentTimeMillis() - st;
-			//Log.d("info.chenliang.tetris", "draw " + tt);
+			tt = System.currentTimeMillis() - st;
+			Log.d("info.chenliang.tetris", "draw " + tt);
 			removeDeadGameObjects();
-			//st = System.currentTimeMillis();
-			
-//			tt = System.currentTimeMillis() - st;
-//			Log.d("info.chenliang.tetris", "bitmap " + tt);
 			
 			lastTickTime = currentTime;
 			synchronized (this) {
@@ -301,9 +299,10 @@ public class Tetris implements Runnable{
 		boolean success = gameCanvas.startDraw();
 		if(success)
 		{
+			long st = System.currentTimeMillis();
 			Paint paint = gameCanvas.getPaint();
-			int screenWidth = gameCanvas.getWidth();
-			int screenHeight = gameCanvas.getHeight();
+			int screenWidth = gameCanvas.getCanvasWidth();
+			int screenHeight = gameCanvas.getCanvasHeight();
 			
 			int xMargin = leftMarginWidth;
 			int yMargin = topMarginHeight;
@@ -316,7 +315,9 @@ public class Tetris implements Runnable{
 			gameCanvas.drawRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight, 0xffffff,0xff);
 			//gameCanvas.clipRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight);
 			drawContainerBackground();
-			
+			long ct = System.currentTimeMillis();
+			Log.d("info.chenliang.tetris", "p0 " + (ct-st));
+			st = ct;
 			for(int row=0; row < blockContainer.getNumRows(); row++){
 				BlockContainerRow containerRow = blockContainer.getRow(row);
 				for(int col=0; col < blockContainer.getNumCols(); col++){
@@ -327,6 +328,9 @@ public class Tetris implements Runnable{
 				}
 			}
 			
+			ct = System.currentTimeMillis();
+			Log.d("info.chenliang.tetris", "p1 " + (ct-st));
+			st = ct;
 			if(state == STATE_NORMAL)
 			{
 				drawBlock(shadowBlock, 0, 0,255,true);
@@ -343,6 +347,9 @@ public class Tetris implements Runnable{
 			}
 			
 			drawBlock(currentBlock, 0, 0,255,true);
+			ct = System.currentTimeMillis();
+			Log.d("info.chenliang.tetris", "p2 " + (ct-st));
+			st = ct;
 			
 			drawGameObjects();
 			
@@ -355,8 +362,12 @@ public class Tetris implements Runnable{
 			}
 			
 			//triangleRenderer.fillTriangle(v1, v2, v3, color);
-			
+			ct = System.currentTimeMillis();
+			Log.d("info.chenliang.tetris", "p3 " + (ct-st));
+			st = ct;
 			gameCanvas.endDraw();
+			ct = System.currentTimeMillis();
+			Log.d("info.chenliang.tetris", "p4 " + (ct-st));
 		}
 	}
 	
@@ -638,8 +649,8 @@ public class Tetris implements Runnable{
 	}
 	
 	private void initViewParams(){
-		final int screenWidth = gameCanvas.getWidth();
-		final int screenHeight = gameCanvas.getHeight();
+		final int screenWidth = gameCanvas.getCanvasWidth();
+		final int screenHeight = gameCanvas.getCanvasHeight();
 		
 		final int numCols = blockContainer.getNumCols();
 		final int numRows = blockContainer.getNumRows();
@@ -744,7 +755,7 @@ public class Tetris implements Runnable{
 				
 				xOffset += cellSize;
 				
-				//return;
+				return;
 			}
 			
 		}
