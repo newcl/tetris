@@ -18,7 +18,6 @@ public class FatRockActivity extends Activity {
         
         fatRockView = new FatRockView(getBaseContext());
         setContentView(fatRockView);
-        
     }
 	
 	@Override

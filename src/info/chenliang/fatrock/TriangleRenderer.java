@@ -110,7 +110,7 @@ public class TriangleRenderer {
 				dxLeft = right ? dx31/dy31 : dx21/dy21;
 				dxRight = right ? dx21/dy21 : dx31/dy31;
 				
-				dzLeft = right ? dz31/dy31 : dx21/dy21;
+				dzLeft = right ? dz31/dy31 : dz21/dy21;
 				dzRight = right ? dz21/dy21 : dz31/dy31;
 
 				float zLeft = p1.w;
@@ -156,7 +156,7 @@ public class TriangleRenderer {
 			
 				
 		}
-		
+		//if(true)return;
 		float dy32 = p3.y - p2.y;
 		if(dy32 > 0.0f)
 		{
@@ -222,9 +222,9 @@ public class TriangleRenderer {
 			}
 		}
 		
-//		gameCanvas.drawLine(p1.x, p1.y, p2.x, p2.y, 0xff000000);
-//		gameCanvas.drawLine(p1.x, p1.y, p3.x, p3.y, 0xff000000);
-//		gameCanvas.drawLine(p3.x, p3.y, p2.x, p2.y, 0xff000000);
+		drawLine3d(p1.degenerate(), p3.degenerate(),0xff000000);
+		drawLine3d(p1.degenerate(), p2.degenerate(), 0xff000000);
+		drawLine3d(p2.degenerate(), p3.degenerate(), 0xff000000);
 		long tt = System.currentTimeMillis() - st;
 		Log.d("info.chenliang.tetris", "interpolation:" + count + " " + tt);
 	}

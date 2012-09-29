@@ -13,7 +13,9 @@ import android.graphics.Paint;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.view.View;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
 
@@ -23,11 +25,12 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	Camera camera;
 	Paint paint;
 	Vertex3d[] points, transformedPoints;	
-	float size = 20;
+	float size = 30;
 	int angle;
 	TriangleRenderer triangleRenderer;
 	Canvas canvas;
 	Vector3d colorVector;
+	boolean rotate = true;
 	public FatRockView(Context context)
 	{
 		super(context);
@@ -58,6 +61,17 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 		colorVector = new Vector3d(0, 255, 0);
 		
 		paint = new Paint();
+		setOnTouchListener(new OnTouchListener() {
+			
+			public boolean onTouch(View v, MotionEvent event) {
+				// TODO Auto-generated method stub
+				if(event.getAction() == MotionEvent.ACTION_DOWN)
+				{
+					rotate = !rotate;
+				}
+				return true;
+			}
+		});
 	}
 
 	public void run() {
@@ -70,7 +84,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			{
 				continue;
 			}
-			canvas.drawColor(0xffff00ff);
+			canvas.drawColor(0xff000000);
 			
 			Vector3d n = new Vector3d(1,1,1);
 			n.normalize();
@@ -97,8 +111,11 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 				transformedPoints[i].position = v2;
 			}
 			
-			angle += 5;
-			angle %= 360;
+			if(rotate)
+			{
+				angle += 5;
+				angle %= 360;				
+			}
 			
 			long st = System.currentTimeMillis();
 			triangleRenderer.resetZBuffer();
