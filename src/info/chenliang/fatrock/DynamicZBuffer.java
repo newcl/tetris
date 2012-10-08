@@ -1,19 +1,24 @@
 package info.chenliang.fatrock;
 
-import java.util.HashMap;
+import android.util.SparseArray;
 
 public class DynamicZBuffer extends ZBuffer {
-	private HashMap<Integer, Float> zBuffer;
+	private SparseArray<Float> zBuffer;
 	
 	public DynamicZBuffer(int width, int height)
 	{
 		super(width, height);
-		zBuffer = new HashMap<Integer, Float>();
+		zBuffer = new SparseArray<Float>();
 	}
 	
 	@Override
 	public float getZ(int x, int y) {
-		return x << 16 | y;
+		Float f = zBuffer.get(x << 16 | y);
+		if(f == null)
+		{
+			f = Float.MAX_VALUE;
+		}
+		return f;
 	}
 
 	@Override

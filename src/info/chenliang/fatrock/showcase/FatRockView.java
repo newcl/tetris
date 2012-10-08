@@ -5,6 +5,7 @@ import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
 import info.chenliang.fatrock.DynamicZBuffer;
+import info.chenliang.fatrock.FixedSizeZBuffer;
 import info.chenliang.fatrock.PixelRenderer;
 import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.fatrock.Vertex3d;
@@ -73,6 +74,11 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 				return true;
 			}
 		});
+		
+		paint.setStrokeWidth(1);
+		paint.setAlpha(255);
+		paint.setStyle(Style.STROKE);
+		paint.setStrokeCap(Cap.SQUARE);
 	}
 
 	public void run() {
@@ -173,7 +179,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	public void surfaceCreated(SurfaceHolder arg0) {
 		// TODO Auto-generated method stub
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 90, 10, 150, getWidth(), getHeight(), 0, 0);
-		triangleRenderer = new TriangleRenderer(this, new DynamicZBuffer(getWidth(), getHeight()));
+		triangleRenderer = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight()));
 		new Thread(this).start();
 	}
 
@@ -183,12 +189,6 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	}
 
 	public void setPixel(int x, int y, int color) {
-		// TODO Auto-generated method stub
-		paint.setStrokeWidth(1);
-		paint.setAlpha(255);
-		paint.setStyle(Style.STROKE);
-		paint.setStrokeCap(Cap.SQUARE);
-		
 		paint.setColor(0xff000000|color);
 		canvas.drawPoint(x, y, paint);
 	}

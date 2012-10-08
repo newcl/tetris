@@ -13,7 +13,7 @@ public class FixedSizeZBuffer extends ZBuffer {
 	
 	@Override
 	public float getZ(int x, int y) {
-		return y*width + x;
+		return zBuffer[y*width + x];
 	}
 
 	@Override
