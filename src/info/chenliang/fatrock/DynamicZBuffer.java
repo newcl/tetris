@@ -5,9 +5,9 @@ import android.util.SparseArray;
 public class DynamicZBuffer extends ZBuffer {
 	private SparseArray<Float> zBuffer;
 	
-	public DynamicZBuffer(int width, int height)
+	public DynamicZBuffer(int width, int height, ZBufferComparer  zBufferComparer)
 	{
-		super(width, height);
+		super(width, height, zBufferComparer);
 		zBuffer = new SparseArray<Float>();
 	}
 	

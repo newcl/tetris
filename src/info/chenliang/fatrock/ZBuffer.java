@@ -1,13 +1,15 @@
 package info.chenliang.fatrock;
 
 public abstract class ZBuffer {
-	protected int width;
-	protected int height;
+	public int width;
+	public int height;
+	public ZBufferComparer  zBufferComparer;
 	
-	public ZBuffer(int width, int height)
+	public ZBuffer(int width, int height, ZBufferComparer  zBufferComparer)
 	{
 		this.width = width;
 		this.height = height;
+		this.zBufferComparer = zBufferComparer;
 	}
 	
 	public abstract float getZ(int x, int y);

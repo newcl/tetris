@@ -4,26 +4,30 @@ import info.chenliang.ds.Precision;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 
-import java.util.Arrays;
-
-import android.util.Log;
-
 public class TriangleRenderer {
 	public PixelRenderer pixelRenderer;
 	public ZBuffer zBuffer;
+	private final boolean projectionCorrect;
 	
-	public TriangleRenderer(PixelRenderer pixelRenderer, ZBuffer zBuffer)
+	public TriangleRenderer(PixelRenderer pixelRenderer, ZBuffer zBuffer, boolean projectionCorrect)
 	{
 		this.pixelRenderer = pixelRenderer;
 		this.zBuffer = zBuffer;
+		//this.projectionCorrect = false;//projectionCorrect;
+		this.projectionCorrect = projectionCorrect;
 	}
 	
 	public void resetZBuffer()
 	{
-		long st = System.currentTimeMillis();
-		zBuffer.reset(Float.MAX_VALUE);
-		long ct = System.currentTimeMillis();
-		Log.d("info.chenliang.tetris", "reset " + (ct-st));
+		if(projectionCorrect)
+		{
+			zBuffer.reset(Float.MIN_VALUE);
+		}
+		else
+		{
+			zBuffer.reset(Float.MAX_VALUE);	
+		}
+		
 	}
 	
 	private Vector3d getRandomColor()
@@ -33,8 +37,6 @@ public class TriangleRenderer {
 	
 	public void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3, Vector3d color)
 	{
-		long st = System.currentTimeMillis();
-		
 		Vector4d temp;
 		Vector4d p1 = v1.position;
 		Vector4d p2 = v2.position;
@@ -88,6 +90,8 @@ public class TriangleRenderer {
 		float dxLeft = 0.0f, dxRight = 0.0f, dzLeft=0.0f, dzRight=0.0f;
 		float dz31 = p3.w - p1.w;
 		float dz21 = p2.w - p1.w;
+		float _dz31 = 1/p3.w - 1/p1.w;
+		
 		if(dy21 > 0.0f)
 		{
 			int startY = (int)Math.ceil(p1.y);
@@ -96,17 +100,28 @@ public class TriangleRenderer {
 			int ySpan = endY - startY + 1;
 			if(ySpan > 0)
 			{
+				float _dz21 = 1/p2.w - 1/p1.w;
+				float subPixelY = startY - p1.y;
+				
 				dxLeft = right ? dx31/dy31 : dx21/dy21;
 				dxRight = right ? dx21/dy21 : dx31/dy31;
 				
-				dzLeft = right ? dz31/dy31 : dz21/dy21;
-				dzRight = right ? dz21/dy21 : dz31/dy31;
+				if(projectionCorrect)
+				{
+					dzLeft = right ? _dz31/dy31 : _dz21/dy21;
+					dzRight = right ? _dz21/dy21 : _dz31/dy31;
+				}
+				else
+				{
+					dzLeft = right ? dz31/dy31 : dz21/dy21;
+					dzRight = right ? dz21/dy21 : dz31/dy31;	
+				}
 
-				float zLeft = p1.w;
-				float zRight = p1.w;
+				float zLeft = projectionCorrect ? 1/p1.w : p1.w + dzLeft*subPixelY;
+				float zRight = projectionCorrect ? 1/p1.w : p1.w + dzRight*subPixelY;
 				
-				float xLeft = p1.x;
-				float xRight = p1.x;
+				float xLeft = p1.x + dxLeft*subPixelY;
+				float xRight = p1.x + dxRight*subPixelY;
 				
 				for(int y=startY; y <= endY; y++)
 				{
@@ -118,14 +133,19 @@ public class TriangleRenderer {
 					{
 						float dz = (zRight - zLeft) / xSpan;
 						float z = zLeft;
+						float subPixelX = startX - xLeft;
+						z += subPixelX*dz;
 						for(int x=startX; x <= endX; x++)
 						{
-							if(z < zBuffer.getZ(x, y))
+							float _z = zBuffer.getZ(x, y);
+							//if((projectionCorrect && z > _z) 
+							//||(!projectionCorrect && z < _z))
+							if(zBuffer.zBufferComparer.compare(_z, z))						
 							{
 								pixelRenderer.setPixel(x, y, fc);
 								zBuffer.setZ(x, y, z);
 
-								count++;
+								count++;								
 							}
 							
 							z += dz;
@@ -142,35 +162,58 @@ public class TriangleRenderer {
 			
 				
 		}
-		//if(true)return;
+
 		float dy32 = p3.y - p2.y;
 		if(dy32 > 0.0f)
 		{
-			if(dy31 == 0.0f)
-			{
-				throw new RuntimeException("render bottom error");
-			}
-			
 			int startY = (int)Math.ceil(p2.y);
 			int endY = (int)Math.ceil(p3.y) - 1;
 			int ySpan = endY - startY + 1;
 			if(ySpan > 0)
 			{
+				float subPixelY = startY - p2.y;;
+				
 				float dx32 = p3.x - p2.x;
 				
 				float xLeft = right? p1.x+dy21*dxLeft : p2.x;
 				float xRight = right ? p2.x : p1.x+dy21*dxRight;
 				
-				float zLeft = right ? p1.w+dy21*dzLeft : p2.w;
-				float zRight = right ? p2.w: p1.w+dzRight*dy21;
+				float zLeft = 0.0f;
+				float zRight = 0.0f;
+				
+				if(projectionCorrect)
+				{
+					zLeft = right ? 1/p1.w+dy21*dzLeft : 1/p2.w;
+					zRight = right ? 1/p2.w: 1/p1.w+dzRight*dy21;
+				}
+				else
+				{
+					zLeft = right ? p1.w+dy21*dzLeft : p2.w;
+					zRight = right ? p2.w: p1.w+dzRight*dy21;
+				}
 				
 				dxLeft = right ? dx31/dy31 : dx32/dy32;
 				dxRight = right ? dx32/dy32 : dx31/dy31;
 				
-				float dz32 = p3.w - p2.w;
+				xLeft += subPixelY*dxLeft;
+				xRight += subPixelY*dxRight;
 				
-				dzLeft = right ? dz31/dy31 : dz32/dy32;
-				dzRight = right ? dz32/dy32 : dz31/dy31;
+				float dz32 = p3.w - p2.w;
+				float _dz32 = 1/p3.w - 1/p2.w;
+				
+				if(projectionCorrect)
+				{
+					dzLeft = right ? _dz31/dy31 : _dz32/dy32;
+					dzRight = right ? _dz32/dy32 : _dz31/dy31;
+				}
+				else
+				{
+					dzLeft = right ? dz31/dy31 : dz32/dy32;
+					dzRight = right ? dz32/dy32 : dz31/dy31;	
+				}
+				
+				zLeft += subPixelY*dzLeft;
+				zRight += subPixelY*dzRight;
 				
 				for(int y=startY; y <= endY; y++)
 				{
@@ -182,9 +225,14 @@ public class TriangleRenderer {
 					{
 						float dz = (zRight - zLeft)/ xSpan;
 						float z = zLeft;
+						float subPixelX = startX - xLeft;
+						z += subPixelX*dz;
 						for(int x=startX; x <= endX; x++)
 						{
-							if(z < zBuffer.getZ(x, y))
+							float _z = zBuffer.getZ(x, y);
+//							if((projectionCorrect && z > _z)
+//							||(!projectionCorrect && z < _z))
+							if(zBuffer.zBufferComparer.compare(_z, z))
 							{
 								pixelRenderer.setPixel(x, y, fc);
 								zBuffer.setZ(x, y, z);
@@ -204,9 +252,6 @@ public class TriangleRenderer {
 				}	
 			}
 		}
-		
-		long tt = System.currentTimeMillis() - st;
-		Log.d("info.chenliang.tetris", "interpolation:" + count + " " + tt);
 		
 		p1.z = p1.w;
 		p2.z = p2.w;
@@ -242,15 +287,21 @@ public class TriangleRenderer {
 			return;
 		}
 		
-		float xStart = p1.x; 
+		float subPixelY = topY - p1.y;
 		float dx = (p2.x - p1.x) / dy21;
-		float z = p1.z;
-		float dz = (p2.z - p1.z) / dy21;
+		float xStart = p1.x + subPixelY*dx; 
+		
+		float z = projectionCorrect? 1/p1.z : p1.z;
+		
+		float dz = projectionCorrect ? (1/p2.z - 1/p1.z)/dy21 : (p2.z - p1.z) / dy21;
+		z += dz*subPixelY;
 		for(int y=topY; y <= bottomY; y++)
 		{
 			int x = (int)Math.ceil(xStart);
-			
-			if(z < zBuffer.getZ(x, y))
+			float subPixelX = x - xStart;
+			//z += subPixelX*;
+			float _z = zBuffer.getZ(x, y);
+			if(zBuffer.zBufferComparer.compare(_z, z))
 			{
 				pixelRenderer.setPixel(x, y, color);
 				zBuffer.setZ(x, y, z);

@@ -6,6 +6,7 @@ import info.chenliang.fatrock.Camera;
 import info.chenliang.fatrock.DynamicZBuffer;
 import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.fatrock.Vertex3d;
+import info.chenliang.fatrock.ZBufferComparerGreaterThan;
 import info.chenliang.tetris.sound.SoundManager;
 
 import java.util.ArrayList;
@@ -136,7 +137,7 @@ public class Tetris implements Runnable{
 		blockZ = near + (far - near)/2;
 		screenSize = (int)(blockZ - cellSize/2)*2;
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, screenSize, screenSize, 0, 0);
-		triangleRenderer = new TriangleRenderer(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight()));
+		triangleRenderer = new TriangleRenderer(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight(), new ZBufferComparerGreaterThan()), true);
 	}
 	
 	public void run() {
@@ -146,14 +147,8 @@ public class Tetris implements Runnable{
 			long currentTime = System.currentTimeMillis();
 			int timeElapsed = (int)(currentTime - lastTickTime);
 
-			long st = System.currentTimeMillis();
 			gameTick(timeElapsed);
-			long tt = System.currentTimeMillis() - st;
-			Log.d("info.chenliang.tetris", "tick " + tt);
-			st = System.currentTimeMillis();
-			gameDraw();				
-			tt = System.currentTimeMillis() - st;
-			Log.d("info.chenliang.tetris", "draw " + tt);
+			gameDraw();
 			removeDeadGameObjects();
 			
 			lastTickTime = currentTime;
@@ -316,7 +311,6 @@ public class Tetris implements Runnable{
 			//gameCanvas.clipRect(xMargin, yMargin, xMargin + containerWidth, yMargin + containerHeight);
 			drawContainerBackground();
 			long ct = System.currentTimeMillis();
-			Log.d("info.chenliang.tetris", "p0 " + (ct-st));
 			st = ct;
 			for(int row=0; row < blockContainer.getNumRows(); row++){
 				BlockContainerRow containerRow = blockContainer.getRow(row);

@@ -5,9 +5,9 @@ import java.util.Arrays;
 public class FixedSizeZBuffer extends ZBuffer {
 	public float[] zBuffer;
 	
-	public FixedSizeZBuffer(int width, int height)
+	public FixedSizeZBuffer(int width, int height, ZBufferComparer  zBufferComparer)
 	{
-		super(width, height);
+		super(width, height, zBufferComparer);
 		zBuffer = new float[width*height];
 	}
 	

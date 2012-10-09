@@ -106,12 +106,27 @@ public class Camera {
 		float d = (float)(1 / Math.tan(viewAngleInRadian));
 		
 		Assert.judge(!Precision.getInstance().equals(nearZ, farZ), "near and far z should not be the same!");
+		
+		/*
+		 * We need to set A && B so that for bigger z, the projected z is also bigger
+		 * So we can employ different fules
+		 * 1 f(far) = 1 & f(near) = -1   A =  (f + n) / (f - n)    B = - 2 * f * n / (f - n)
+		 * 2 f(far) = 1 & f(near) = 0    A =  f / (f - n)			B = - f * n / (f - n)
+		 * f(far) = -1 & f(near) = 1	  A = (- f - n) / (f - n)   B = (2 * n * f) / (f - n)
+		 */
+		
 		//| d/AR  0 0 0|
 		//| 0     d 0 0|
 		//| 0     0 A B|
 		//| 0     0 1 0|
+		
+		/*
 		float A = (farZ + nearZ) / (farZ - nearZ);
 		float B = -2 * farZ * nearZ / (farZ - nearZ);
+		*/
+		
+		float A = farZ / (farZ - nearZ);
+		float B = - farZ * nearZ / (farZ - nearZ);
 		cameraToProjectionTransform.set(d/aspectRatio, 0, 0, 0,
 										0, d, 0, 0, 
 										0, 0, A, B, 

@@ -4,22 +4,22 @@ import info.chenliang.ds.Matrix3x3;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
-import info.chenliang.fatrock.DynamicZBuffer;
 import info.chenliang.fatrock.FixedSizeZBuffer;
 import info.chenliang.fatrock.PixelRenderer;
 import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.fatrock.Vertex3d;
+import info.chenliang.fatrock.ZBufferComparerGreaterThan;
+import info.chenliang.fatrock.ZBufferComparerLessThan;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
 import android.graphics.Paint.Style;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
-import android.view.View;
 import android.view.SurfaceHolder.Callback;
 import android.view.SurfaceView;
+import android.view.View;
 
 public class FatRockView extends SurfaceView implements Callback, Runnable, PixelRenderer{
 	boolean running;
@@ -30,6 +30,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	float size = 30;
 	int angle;
 	TriangleRenderer triangleRenderer;
+	TriangleRenderer triangleRenderer2;
 	Canvas canvas;
 	Vector3d colorVector;
 	boolean rotate = true;
@@ -124,7 +125,6 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 				angle %= 360;				
 			}
 			
-			long st = System.currentTimeMillis();
 			triangleRenderer.resetZBuffer();
 			triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], new Vector3d(0xff,0,0));
 			triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2], new Vector3d(0xff,0,0));
@@ -155,10 +155,47 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], new Vector3d(0,0xff,0xff));
 //			triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[7], transformedPoints[4], new Vector3d(0,0xff,0xff));
 //			triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[0], transformedPoints[3], new Vector3d(0,0xff,0xff));
+			
+			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+			for(int i=0; i < 8; i++)
+			{
+				transformedPoints[i].position.y += 200;
+
+				
+			}
+			triangleRenderer2.resetZBuffer();
+			triangleRenderer2.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], new Vector3d(0xff,0,0));
+			triangleRenderer2.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2], new Vector3d(0xff,0,0));
+//			triangleRenderer2.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[3], new Vector3d(0xff,0,0));
+//			triangleRenderer2.fillTriangle(transformedPoints[2], transformedPoints[2], transformedPoints[3], new Vector3d(0xff,0,0));
+			
+			triangleRenderer2.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[6], new Vector3d(0,0xff,0));
+			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[4], new Vector3d(0,0xff,0));
+//			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[5], transformedPoints[4], new Vector3d(0,0xff,0));
+//			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[5], new Vector3d(0,0xff,0));
+			
+			triangleRenderer2.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[0], new Vector3d(0,0,0xff));
+			triangleRenderer2.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[5], new Vector3d(0,0,0xff));
+//			triangleRenderer2.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[4], new Vector3d(0,0,0xff));
+//			triangleRenderer2.fillTriangle(transformedPoints[1], transformedPoints[4], transformedPoints[5], new Vector3d(0,0,0xff));
+			
+			triangleRenderer2.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[6], new Vector3d(0xff,0xff,0));
+			triangleRenderer2.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1], new Vector3d(0xff,0xff,0));
+//			triangleRenderer2.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[5], new Vector3d(0xff,0xff,0));
+//			triangleRenderer2.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[2], new Vector3d(0xff,0xff,0));
+			
+			triangleRenderer2.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[2], new Vector3d(128,0,128));
+			triangleRenderer2.fillTriangle(transformedPoints[3], transformedPoints[7], transformedPoints[2], new Vector3d(128,0,128));
+//			triangleRenderer2.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[3], new Vector3d(0xff,0,0xff));
+//			triangleRenderer2.fillTriangle(transformedPoints[3], transformedPoints[6], transformedPoints[2], new Vector3d(0xff,0,0xff));
+			
+			triangleRenderer2.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[4], new Vector3d(0,0xff,0xff));
+			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], new Vector3d(0,0xff,0xff));
+//			triangleRenderer2.fillTriangle(transformedPoints[0], transformedPoints[7], transformedPoints[4], new Vector3d(0,0xff,0xff));
+//			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[0], transformedPoints[3], new Vector3d(0,0xff,0xff));
+			
 			holder.unlockCanvasAndPost(canvas);
 			
-			long tt = System.currentTimeMillis() - st;
-			Log.d("info.chenliang.fatrock", ""+tt);
 			synchronized(this)
 			{
 				try {
@@ -179,7 +216,8 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	public void surfaceCreated(SurfaceHolder arg0) {
 		// TODO Auto-generated method stub
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 90, 10, 150, getWidth(), getHeight(), 0, 0);
-		triangleRenderer = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight()));
+		triangleRenderer = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerGreaterThan()), true);
+		triangleRenderer2 = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerLessThan()), false);
 		new Thread(this).start();
 	}
 
