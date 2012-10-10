@@ -62,6 +62,13 @@ public class Vector3d {
 		z *= factor;
 	}
 	
+	public Vector3d scale2(float factor)
+	{
+		Vector3d v = new Vector3d(this);
+		v.scale(factor);
+		return v;
+	}
+	
 	public Vector3d clone()
 	{
 		return new Vector3d(x, y, z);
@@ -149,5 +156,22 @@ public class Vector3d {
 		vParallel.scale(k);
 		
 		return vPerpendicular.add(vParallel);
+	}
+	
+	public void clamp(float min, float max)
+	{
+		x = Math.min(x, max);
+		x = Math.max(x, min);
+		
+		y = Math.min(y, max);
+		y = Math.max(y, min);
+		
+		y = Math.min(y, max);
+		y = Math.max(y, min);
+	}
+	
+	public int asColor()
+	{
+		return 0xff000000|(int)(x) << 16 | (int)(y) << 8 | (int)(z);
 	}
 }

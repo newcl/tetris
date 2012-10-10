@@ -8,6 +8,11 @@ public class Vector4d {
 		set(0.0f, 0.0f, 0.0f, 1.0f);
 	}
 	
+	public Vector4d(Vector4d v)
+	{
+		copy(v);
+	}
+	
 	public Vector4d(float x, float y, float z, float w) {
 		super();
 		set(x, y, z, w);
@@ -57,5 +62,10 @@ public class Vector4d {
 		y *= factor;
 		z *= factor;
 		w *= factor;
+	}
+	
+	public void copy(Vector4d v)
+	{
+		set(v.x, v.y, v.z, v.w);
 	}
 }

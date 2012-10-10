@@ -85,4 +85,15 @@ public class Matrix4x4 {
 		
 		throw new RuntimeException("Only row index 0, 1, 2 ,3 are valid row index.");
 	}
+	
+	public Vector3d rotate(Vector3d v)
+	{
+		Vector3d result = new Vector3d(0, 0, 0);
+		
+		result.x = new Vector3d(m00, m01, m02).dot(v);
+		result.y = new Vector3d(m10, m11, m12).dot(v);
+		result.z = new Vector3d(m20, m21, m22).dot(v);
+		
+		return result;
+	}
 }

@@ -54,7 +54,7 @@ public class GameObject3d extends GameObject{
 		transformedPoints = new Vertex3d[8]; 
 		for(int i=0; i < 8; i++)
 		{
-			transformedPoints[i] = new Vertex3d();
+			transformedPoints[i] = new Vertex3d(points[0]);
 			
 			points[i].position.x -= size /2;
 			points[i].position.y -= size /2;

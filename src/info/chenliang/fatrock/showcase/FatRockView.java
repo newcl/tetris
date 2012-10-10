@@ -1,11 +1,16 @@
 package info.chenliang.fatrock.showcase;
 
 import info.chenliang.ds.Matrix3x3;
+import info.chenliang.ds.Matrix4x4;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
+import info.chenliang.fatrock.CubeSceneObject;
+import info.chenliang.fatrock.DirectionLight;
 import info.chenliang.fatrock.FixedSizeZBuffer;
+import info.chenliang.fatrock.Light;
 import info.chenliang.fatrock.PixelRenderer;
+import info.chenliang.fatrock.Triangle;
 import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.fatrock.ZBufferComparerGreaterThan;
@@ -26,7 +31,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	SurfaceHolder holder;
 	Camera camera;
 	Paint paint;
-	Vertex3d[] points, transformedPoints;	
+	//Vertex3d[] points, transformedPoints;	
 	float size = 30;
 	int angle;
 	TriangleRenderer triangleRenderer;
@@ -34,11 +39,17 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	Canvas canvas;
 	Vector3d colorVector;
 	boolean rotate = true;
+	CubeSceneObject cube;
+	Vector3d fixedColor;
+	Vector3d r = new Vector3d(1, 1, 1);
+	DirectionLight light;
 	public FatRockView(Context context)
 	{
 		super(context);
 		holder = getHolder();
 		holder.addCallback(this);
+		
+		/*
 		points = new Vertex3d[8];
 		points[0] = new Vertex3d(new Vector4d(0, 0, 0), new Vector3d(0, 0,0xff));
 		points[1] = new Vertex3d(new Vector4d(size, 0, 0), new Vector3d(0, 0, 0xff));
@@ -60,7 +71,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			points[i].position.z -= size /2;
 		}
 		
-		
+		*/
 		colorVector = new Vector3d(0, 255, 0);
 		
 		paint = new Paint();
@@ -80,10 +91,18 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 		paint.setAlpha(255);
 		paint.setStyle(Style.STROKE);
 		paint.setStrokeCap(Cap.SQUARE);
+		
+		cube = new CubeSceneObject(null, new Vector3d(0, 0, 90), 30);
+		fixedColor = new Vector3d(255.0f, 0.0f, 0.0f);
+		
+		r = new Vector3d(1, 1, 1);
+		r.normalize();
+		
+		light = new DirectionLight(new Vector3d(150, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(-1, 1, -1));
+		
 	}
-
+	
 	public void run() {
-		// TODO Auto-generated method stub
 		running = true;
 		while(running)
 		{
@@ -93,109 +112,67 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 				continue;
 			}
 			canvas.drawColor(0xff000000);
-			
-			Vector3d n = new Vector3d(1,1,1);
-			n.normalize();
-			Matrix3x3 r = Matrix3x3.buildRotateMatrix(n, angle);
-			
-			for(int i=0; i < 8; i++)
+			Matrix3x3 rm = Matrix3x3.buildRotateMatrix(r, angle);
+			for(int i=0; i < cube.mesh.vertices.size(); i ++)
 			{
-				Vector3d v = r.transform(points[i].position.degenerate());
-//				v.x += x;
-//				v.y += y;
-				v.z += 100;
-				
-				transformedPoints[i].position.set(v, 1.0f);
-				
-				Vector4d v2 = camera.getWorldToCameraTransform().transform(transformedPoints[i].position);
-				v2 = camera.getCameraToProjectionTransform().transform(v2);
+				Vertex3d v = cube.mesh.vertices.get(i);
+				v.transformedPosition.set(rm.transform(v.position.degenerate()), 1);
+				//v.transformedPosition.copy(v.position);
+				v.transformedPosition = cube.translate.transform(v.transformedPosition); 
+				v.transformedPosition = camera.getWorldToCameraTransform().transform(v.transformedPosition);
+//				Vector4d v2 = camera.getCameraToProjectionTransform().transform(v.transformedPosition);
+//				v2.x /= v2.w;
+//				v2.y /= v2.w;
+//				v2.z /= v2.w;
+//				
+//				float z = v2.w;
+//				v2.w /= v2.w;
+//				
+//				v2 = camera.getProjectionToScreenTransform().transform(v2);
+//				v2.w = z*32767;
+//				//v2.w = z;
+//				
+//				v.transformedPosition.copy(v2);
+			}
+			
+			cube.mesh.updateNormals();
+			
+			for(int i=0; i < cube.mesh.vertices.size(); i ++)
+			{
+				Vertex3d v = cube.mesh.vertices.get(i);
+				light.light(v);
+			}
+			
+			for(int i=0; i < cube.mesh.vertices.size(); i ++)
+			{
+				Vertex3d v = cube.mesh.vertices.get(i);
+				Vector4d v2 = camera.getCameraToProjectionTransform().transform(v.transformedPosition);
 				v2.x /= v2.w;
 				v2.y /= v2.w;
 				v2.z /= v2.w;
+				
 				float z = v2.w;
 				v2.w /= v2.w;
+				
 				v2 = camera.getProjectionToScreenTransform().transform(v2);
 				v2.w = z*32767;
-				transformedPoints[i].position = v2;
-			}
-			
-			if(rotate)
-			{
-				angle += 5;
-				angle %= 360;				
+				//v2.w = z;
+				
+				v.transformedPosition.copy(v2);
 			}
 			
 			triangleRenderer.resetZBuffer();
-			triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], new Vector3d(0xff,0,0));
-			triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2], new Vector3d(0xff,0,0));
-//			triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[3], new Vector3d(0xff,0,0));
-//			triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[2], transformedPoints[3], new Vector3d(0xff,0,0));
-			
-			triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[6], new Vector3d(0,0xff,0));
-			triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[4], new Vector3d(0,0xff,0));
-//			triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[5], transformedPoints[4], new Vector3d(0,0xff,0));
-//			triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[5], new Vector3d(0,0xff,0));
-			
-			triangleRenderer.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[0], new Vector3d(0,0,0xff));
-			triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[5], new Vector3d(0,0,0xff));
-//			triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[4], new Vector3d(0,0,0xff));
-//			triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[4], transformedPoints[5], new Vector3d(0,0,0xff));
-			
-			triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[6], new Vector3d(0xff,0xff,0));
-			triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1], new Vector3d(0xff,0xff,0));
-//			triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[5], new Vector3d(0xff,0xff,0));
-//			triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[2], new Vector3d(0xff,0xff,0));
-			
-			triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[2], new Vector3d(128,0,128));
-			triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[7], transformedPoints[2], new Vector3d(128,0,128));
-//			triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[3], new Vector3d(0xff,0,0xff));
-//			triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[6], transformedPoints[2], new Vector3d(0xff,0,0xff));
-			
-			triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[4], new Vector3d(0,0xff,0xff));
-			triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], new Vector3d(0,0xff,0xff));
-//			triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[7], transformedPoints[4], new Vector3d(0,0xff,0xff));
-//			triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[0], transformedPoints[3], new Vector3d(0,0xff,0xff));
-			
-			//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-			for(int i=0; i < 8; i++)
+			for(int i=0; i < cube.mesh.triangles.size(); i ++)
 			{
-				transformedPoints[i].position.y += 200;
-
+				Triangle triangle = cube.mesh.triangles.get(i);
 				
+				triangleRenderer.fillTriangle(triangle.mesh.vertices.get(triangle.v1), triangle.mesh.vertices.get(triangle.v2), triangle.mesh.vertices.get(triangle.v3), fixedColor);
 			}
-			triangleRenderer2.resetZBuffer();
-			triangleRenderer2.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], new Vector3d(0xff,0,0));
-			triangleRenderer2.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2], new Vector3d(0xff,0,0));
-//			triangleRenderer2.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[3], new Vector3d(0xff,0,0));
-//			triangleRenderer2.fillTriangle(transformedPoints[2], transformedPoints[2], transformedPoints[3], new Vector3d(0xff,0,0));
-			
-			triangleRenderer2.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[6], new Vector3d(0,0xff,0));
-			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[4], new Vector3d(0,0xff,0));
-//			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[5], transformedPoints[4], new Vector3d(0,0xff,0));
-//			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[5], new Vector3d(0,0xff,0));
-			
-			triangleRenderer2.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[0], new Vector3d(0,0,0xff));
-			triangleRenderer2.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[5], new Vector3d(0,0,0xff));
-//			triangleRenderer2.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[4], new Vector3d(0,0,0xff));
-//			triangleRenderer2.fillTriangle(transformedPoints[1], transformedPoints[4], transformedPoints[5], new Vector3d(0,0,0xff));
-			
-			triangleRenderer2.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[6], new Vector3d(0xff,0xff,0));
-			triangleRenderer2.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1], new Vector3d(0xff,0xff,0));
-//			triangleRenderer2.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[5], new Vector3d(0xff,0xff,0));
-//			triangleRenderer2.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[2], new Vector3d(0xff,0xff,0));
-			
-			triangleRenderer2.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[2], new Vector3d(128,0,128));
-			triangleRenderer2.fillTriangle(transformedPoints[3], transformedPoints[7], transformedPoints[2], new Vector3d(128,0,128));
-//			triangleRenderer2.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[3], new Vector3d(0xff,0,0xff));
-//			triangleRenderer2.fillTriangle(transformedPoints[3], transformedPoints[6], transformedPoints[2], new Vector3d(0xff,0,0xff));
-			
-			triangleRenderer2.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[4], new Vector3d(0,0xff,0xff));
-			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], new Vector3d(0,0xff,0xff));
-//			triangleRenderer2.fillTriangle(transformedPoints[0], transformedPoints[7], transformedPoints[4], new Vector3d(0,0xff,0xff));
-//			triangleRenderer2.fillTriangle(transformedPoints[7], transformedPoints[0], transformedPoints[3], new Vector3d(0,0xff,0xff));
 			
 			holder.unlockCanvasAndPost(canvas);
 			
+			angle += 6;
+			angle %= 360;
 			synchronized(this)
 			{
 				try {
