@@ -127,8 +127,8 @@ public class TriangleRenderer {
 				Vector3d colorLeft = new Vector3d(color1);
 				Vector3d colorRight = new Vector3d(color1);
 				
-				colorStepLeft.scale(dzLeft);
-				colorStepRight.scale(dzRight);
+				colorStepLeft.scale(right?1/dy31:1/dy21);
+				colorStepRight.scale(right?1/dy21:1/dy31);
 				
 				_colorStepLeft.copy(colorStepLeft);
 				_colorStepRight.copy(colorStepRight);
@@ -233,13 +233,13 @@ public class TriangleRenderer {
 				}
 				
 				Vector3d colorLeft = right ? color1.add(_colorStepLeft.scale2(dy21)) : new Vector3d(color2);
-				Vector3d colorRight = right? new Vector3d(color2) : color1.add(_colorStepRight).scale2(dy21);
+				Vector3d colorRight = right? new Vector3d(color2) : color1.add(_colorStepRight.scale2(dy21));
 				
-				Vector3d colorStepLeft = right?color3.minus(color1):color2.minus(color1);
-				Vector3d colorStepRight = right?color2.minus(color1):color3.minus(color1);
+				Vector3d colorStepLeft = right?color3.minus(color1):color3.minus(color2);
+				Vector3d colorStepRight = right?color3.minus(color2):color3.minus(color1);
 
-				colorStepLeft.scale(dzLeft);
-				colorStepRight.scale(dzRight);
+				colorStepLeft.scale(right?1/dy31:1/dy32);
+				colorStepRight.scale(right?1/dy32:1/dy31);
 				
 				zLeft += subPixelY*dzLeft;
 				zRight += subPixelY*dzRight;

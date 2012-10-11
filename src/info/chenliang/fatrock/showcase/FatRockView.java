@@ -140,7 +140,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			for(int i=0; i < cube.mesh.vertices.size(); i ++)
 			{
 				Vertex3d v = cube.mesh.vertices.get(i);
-				light.light(v);
+				//light.light(v);
 			}
 			
 			for(int i=0; i < cube.mesh.vertices.size(); i ++)
