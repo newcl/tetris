@@ -7,7 +7,7 @@ public class CubeSceneObject extends SceneObject {
 	public float size;
 	public Material material;
 	
-	public CubeSceneObject(SceneObject parent, Vector3d position, float size) {
+	public CubeSceneObject(SceneObject parent, Vector3d position, float size, Material material) {
 		super(parent, position);
 		this.size = size;
 		
@@ -15,15 +15,11 @@ public class CubeSceneObject extends SceneObject {
 		translate.m13 = position.y;
 		translate.m23 = position.z;
 		
-		material = new Material();
-		material.ambient = new Vector3d(1.0f, 1.0f, 1.0f);
-		material.diffuse = new Vector3d(0.5f, 0.5f, 0.5f);
-		material.specular = new Vector3d(1.0f, 1.0f, 1.0f);
-		material.emission = new Vector3d(1.0f, 1.0f, 1.0f);
+		this.material = material;
 		
 		float sizeHalf = size*.5f;
 		
-		///*
+		/*
 		// 0 ~ 3
 		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(255, 0, 0)));
 		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 255, 0)));
@@ -35,9 +31,9 @@ public class CubeSceneObject extends SceneObject {
 		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 255, 255)));
 		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, sizeHalf), new Vector3d(125, 125, 0)));
 		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 125, 125)));
-		//*/
+		*/
 		
-		/*
+		///*
 		// 0 ~ 3
 		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
 		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
@@ -49,7 +45,7 @@ public class CubeSceneObject extends SceneObject {
 		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
 		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
 		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
-		*/
+		//*/
 		
 		mesh.triangles.add(new Triangle(mesh, 0, 1, 3));
 		mesh.triangles.add(new Triangle(mesh, 3, 1, 2));

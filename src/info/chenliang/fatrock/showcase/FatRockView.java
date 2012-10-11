@@ -7,8 +7,10 @@ import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
 import info.chenliang.fatrock.CubeSceneObject;
 import info.chenliang.fatrock.DirectionLight;
+import info.chenliang.fatrock.DotLight;
 import info.chenliang.fatrock.FixedSizeZBuffer;
 import info.chenliang.fatrock.Light;
+import info.chenliang.fatrock.Material;
 import info.chenliang.fatrock.PixelRenderer;
 import info.chenliang.fatrock.Triangle;
 import info.chenliang.fatrock.TriangleRenderer;
@@ -43,6 +45,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	Vector3d fixedColor;
 	Vector3d r = new Vector3d(1, 1, 1);
 	DirectionLight light;
+	DotLight dotLight;
 	public FatRockView(Context context)
 	{
 		super(context);
@@ -92,14 +95,20 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 		paint.setStyle(Style.STROKE);
 		paint.setStrokeCap(Cap.SQUARE);
 		
-		cube = new CubeSceneObject(null, new Vector3d(0, 0, 90), 30);
+		Material material = new Material();
+		material.ambient = new Vector3d(1.0f, 1.0f, 1.0f);
+		material.diffuse = new Vector3d(0.8f, 0.8f, 0.8f);
+		material.specular = new Vector3d(1.0f, 1.0f, 1.0f);
+		material.emission = new Vector3d(1.0f, 1.0f, 1.0f);
+		
+		cube = new CubeSceneObject(null, new Vector3d(0, 0, 90), 30, material);
 		fixedColor = new Vector3d(255.0f, 0.0f, 0.0f);
 		
 		r = new Vector3d(1, 1, 1);
 		r.normalize();
 		
 		light = new DirectionLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 1));
-		
+		dotLight = new DotLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 0), 0.1f, 0, 0);
 	}
 	
 	public void run() {
@@ -140,7 +149,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			for(int i=0; i < cube.mesh.vertices.size(); i ++)
 			{
 				Vertex3d v = cube.mesh.vertices.get(i);
-				//light.light(v);
+				light.light(v);
 			}
 			
 			for(int i=0; i < cube.mesh.vertices.size(); i ++)
