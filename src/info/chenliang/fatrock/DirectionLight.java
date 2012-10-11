@@ -17,7 +17,7 @@ public class DirectionLight extends Light {
 		Vector3d color = new Vector3d(v.color);
 		Vector3d ambient = new Vector3d(v.material.ambient.x*this.ambient.x, v.material.ambient.y*this.ambient.y, v.material.ambient.z*this.ambient.z);
 		
-		float dot = direction.dot(v.normal);
+		float dot = direction.scale2(-1).dot(v.normal);
 		dot = dot < 0 ? 0 : dot;
 		Vector3d diffuse = new Vector3d(v.material.diffuse.x*this.diffuse.x, v.material.diffuse.y*this.diffuse.y, v.material.diffuse.z*this.diffuse.z);
 		diffuse.scale(dot);

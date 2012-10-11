@@ -23,6 +23,7 @@ public class CubeSceneObject extends SceneObject {
 		
 		float sizeHalf = size*.5f;
 		
+		/*
 		// 0 ~ 3
 		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(255, 0, 0)));
 		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 255, 0)));
@@ -34,24 +35,37 @@ public class CubeSceneObject extends SceneObject {
 		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 255, 255)));
 		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, sizeHalf), new Vector3d(125, 125, 0)));
 		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 125, 125)));
+		*/
 		
-		mesh.triangles.add(new Triangle(mesh, 0, 1, 2));
-		mesh.triangles.add(new Triangle(mesh, 0, 2, 3));
+		// 0 ~ 3
+		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
+		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
+		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
+		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
+				
+		// 4 ~ 7
+		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
+		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
+		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
+		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
 		
-		mesh.triangles.add(new Triangle(mesh, 4, 5, 6));
-		mesh.triangles.add(new Triangle(mesh, 4, 7, 6));
+		mesh.triangles.add(new Triangle(mesh, 0, 1, 3));
+		mesh.triangles.add(new Triangle(mesh, 3, 1, 2));
 		
-		mesh.triangles.add(new Triangle(mesh, 0, 1, 5));
+		mesh.triangles.add(new Triangle(mesh, 7, 5, 4));
+		mesh.triangles.add(new Triangle(mesh, 7, 6, 5));
+		
+		mesh.triangles.add(new Triangle(mesh, 0, 5, 1));
 		mesh.triangles.add(new Triangle(mesh, 0, 4, 5));
 		
-		mesh.triangles.add(new Triangle(mesh, 1, 2, 6));
-		mesh.triangles.add(new Triangle(mesh, 1, 5, 6));
+		mesh.triangles.add(new Triangle(mesh, 2, 1, 5));
+		mesh.triangles.add(new Triangle(mesh, 5, 6, 2));
 		
-		mesh.triangles.add(new Triangle(mesh, 2, 3, 6));
-		mesh.triangles.add(new Triangle(mesh, 3, 7, 6));
+		mesh.triangles.add(new Triangle(mesh, 3, 2, 6));
+		mesh.triangles.add(new Triangle(mesh, 3, 6, 7));
 		
-		mesh.triangles.add(new Triangle(mesh, 0, 3, 4));
-		mesh.triangles.add(new Triangle(mesh, 3, 4, 7));
+		mesh.triangles.add(new Triangle(mesh, 3, 4, 0));
+		mesh.triangles.add(new Triangle(mesh, 4, 3, 7));
 		
 		for(Vertex3d v : mesh.vertices)
 		{

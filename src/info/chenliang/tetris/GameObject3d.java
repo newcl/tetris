@@ -228,33 +228,33 @@ public class GameObject3d extends GameObject{
 		}
 		*/
 		
-		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0], colorVector);
-		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[2], transformedPoints[0]);
+		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[0], transformedPoints[2]);
 //		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[1], transformedPoints[3], colorVector);
 //		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[2], transformedPoints[3], colorVector);
 		
-		triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[6], colorVector);
-		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[4], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[5], transformedPoints[4], transformedPoints[6]);
+		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[4]);
 //		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[5], transformedPoints[4], colorVector);
 //		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[6], transformedPoints[5], colorVector);
 		
-		triangleRenderer.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[0], colorVector);
-		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[5], colorVector);
-//		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[4], colorVector);
-//		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[4], transformedPoints[5], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[4], transformedPoints[5], transformedPoints[0]);
+		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[5]);
+//		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[0], transformedPoints[4]);
+//		triangleRenderer.fillTriangle(transformedPoints[1], transformedPoints[4], transformedPoints[5]);
 		
-		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[6], colorVector);
-		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1], colorVector);
-//		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[5], colorVector);
-//		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[2], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[6]);
+		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[1]);
+//		triangleRenderer.fillTriangle(transformedPoints[2], transformedPoints[1], transformedPoints[5]);
+//		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[5], transformedPoints[2]);
 		
-		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[2], colorVector);
-		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[7], transformedPoints[2], colorVector);
-//		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[3], colorVector);
-//		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[6], transformedPoints[2], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[2]);
+		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[7], transformedPoints[2]);
+//		triangleRenderer.fillTriangle(transformedPoints[6], transformedPoints[7], transformedPoints[3]);
+//		triangleRenderer.fillTriangle(transformedPoints[3], transformedPoints[6], transformedPoints[2]);
 		
-		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[4], colorVector);
-		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3], colorVector);
+		triangleRenderer.fillTriangle(transformedPoints[0], transformedPoints[3], transformedPoints[4]);
+		triangleRenderer.fillTriangle(transformedPoints[7], transformedPoints[4], transformedPoints[3]);
 		
 		triangleRenderer.drawLine3d(transformedPoints[0].position.degenerate(), transformedPoints[1].position.degenerate(), 0);
 		triangleRenderer.drawLine3d(transformedPoints[1].position.degenerate(), transformedPoints[2].position.degenerate(), 0);

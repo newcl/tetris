@@ -7,6 +7,7 @@ public class Triangle {
 	public int v1, v2, v3;
 	public Mesh mesh;
 	public Vector3d normal;
+	
 	public Triangle(Mesh mesh, int v1, int v2, int v3) {
 		super();
 		this.mesh = mesh;
@@ -22,14 +23,9 @@ public class Triangle {
 		Vertex3d vertex3 = mesh.vertices.get(v3);
 		
 		Vector3d v21 = vertex2.transformedPosition.degenerate().minus(vertex1.transformedPosition.degenerate());
-		Vector3d v32 = vertex3.transformedPosition.degenerate().minus(vertex2.transformedPosition.degenerate());
+		Vector3d v31 = vertex3.transformedPosition.degenerate().minus(vertex1.transformedPosition.degenerate());
 		
-		normal = v32.cross(v21);
-		
-//		Vector3d v21 = vertex2.transformedPosition.degenerate().minus(vertex1.transformedPosition.degenerate());
-//		Vector3d v31 = vertex3.transformedPosition.degenerate().minus(vertex1.transformedPosition.degenerate());
-//		
-//		normal = v31.cross(v21);
+		normal = v21.cross(v31);
 		normal.normalize();
 	}
 }

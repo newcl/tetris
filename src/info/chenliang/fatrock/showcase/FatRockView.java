@@ -98,7 +98,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 		r = new Vector3d(1, 1, 1);
 		r.normalize();
 		
-		light = new DirectionLight(new Vector3d(150, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(-1, 1, -1));
+		light = new DirectionLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 1));
 		
 	}
 	
@@ -111,7 +111,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			{
 				continue;
 			}
-			canvas.drawColor(0xff000000);
+			canvas.drawColor(0xffffffff);
 			Matrix3x3 rm = Matrix3x3.buildRotateMatrix(r, angle);
 			for(int i=0; i < cube.mesh.vertices.size(); i ++)
 			{
@@ -166,7 +166,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			{
 				Triangle triangle = cube.mesh.triangles.get(i);
 				
-				triangleRenderer.fillTriangle(triangle.mesh.vertices.get(triangle.v1), triangle.mesh.vertices.get(triangle.v2), triangle.mesh.vertices.get(triangle.v3), fixedColor);
+				triangleRenderer.fillTriangle(triangle.mesh.vertices.get(triangle.v1), triangle.mesh.vertices.get(triangle.v2), triangle.mesh.vertices.get(triangle.v3));
 			}
 			
 			holder.unlockCanvasAndPost(canvas);

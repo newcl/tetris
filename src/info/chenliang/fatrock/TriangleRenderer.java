@@ -35,7 +35,7 @@ public class TriangleRenderer {
 		return new Vector3d((float)Math.random()*256, (float)Math.random()*256, (float)Math.random()*256);
 	}
 	
-	public void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3, Vector3d color)
+	public void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3)
 	{
 		Vector4d temp;
 		Vector4d p1 = v1.transformedPosition;
@@ -87,14 +87,14 @@ public class TriangleRenderer {
 		Vector3d color3 = v3.transformedColor;
 		
 		boolean right = cross > 0;		
-		int fc = (int)(color.x) << 16 | (int)(color.y) << 8 | (int)(color.z);
+		
 		float dxLeft = 0.0f, dxRight = 0.0f, dzLeft=0.0f, dzRight=0.0f;
 		float dz31 = p3.w - p1.w;
 		float dz21 = p2.w - p1.w;
 		float _dz31 = 1/p3.w - 1/p1.w;
 		
-		Vector3d _colorStepLeft = new Vector3d();
-		Vector3d _colorStepRight = new Vector3d();
+		Vector3d _colorStepLeft = new Vector3d(0, 0, 0);
+		Vector3d _colorStepRight = new Vector3d(0, 0, 0);
 		
 		if(dy21 > 0.0f)
 		{
@@ -110,18 +110,6 @@ public class TriangleRenderer {
 				dxLeft = right ? dx31/dy31 : dx21/dy21;
 				dxRight = right ? dx21/dy21 : dx31/dy31;
 				
-				Vector3d colorStepLeft = right?color3.minus(color1):color2.minus(color1);
-				Vector3d colorStepRight = right?color2.minus(color1):color3.minus(color1);
-				
-				Vector3d colorLeft = new Vector3d(color1);
-				Vector3d colorRight = new Vector3d(color1);
-				
-				colorStepLeft.scale(dxLeft);
-				colorStepRight.scale(dxRight);
-				
-				_colorStepLeft.copy(colorStepLeft);
-				_colorStepRight.copy(colorStepRight);
-				
 				if(projectionCorrect)
 				{
 					dzLeft = right ? _dz31/dy31 : _dz21/dy21;
@@ -132,6 +120,18 @@ public class TriangleRenderer {
 					dzLeft = right ? dz31/dy31 : dz21/dy21;
 					dzRight = right ? dz21/dy21 : dz31/dy31;
 				}
+				
+				Vector3d colorStepLeft = right?color3.minus(color1):color2.minus(color1);
+				Vector3d colorStepRight = right?color2.minus(color1):color3.minus(color1);
+				
+				Vector3d colorLeft = new Vector3d(color1);
+				Vector3d colorRight = new Vector3d(color1);
+				
+				colorStepLeft.scale(dzLeft);
+				colorStepRight.scale(dzRight);
+				
+				_colorStepLeft.copy(colorStepLeft);
+				_colorStepRight.copy(colorStepRight);
 
 				float zLeft = projectionCorrect ? 1/p1.w : p1.w + dzLeft*subPixelY;
 				float zRight = projectionCorrect ? 1/p1.w : p1.w + dzRight*subPixelY;
@@ -218,15 +218,6 @@ public class TriangleRenderer {
 				xLeft += subPixelY*dxLeft;
 				xRight += subPixelY*dxRight;
 
-				Vector3d colorLeft = right ? color1.add(_colorStepLeft.scale2(dy21)) : new Vector3d(color2);
-				Vector3d colorRight = right? new Vector3d(color2) : color1.add(_colorStepRight).scale2(dy21);
-				
-				Vector3d colorStepLeft = right?color2.minus(color1):color3.minus(color1);
-				Vector3d colorStepRight = right?color3.minus(color1):color2.minus(color1);
-
-				colorStepLeft.scale(dxLeft);
-				colorStepRight.scale(dxRight);
-				
 				float dz32 = p3.w - p2.w;
 				float _dz32 = 1/p3.w - 1/p2.w;
 				
@@ -240,6 +231,15 @@ public class TriangleRenderer {
 					dzLeft = right ? dz31/dy31 : dz32/dy32;
 					dzRight = right ? dz32/dy32 : dz31/dy31;	
 				}
+				
+				Vector3d colorLeft = right ? color1.add(_colorStepLeft.scale2(dy21)) : new Vector3d(color2);
+				Vector3d colorRight = right? new Vector3d(color2) : color1.add(_colorStepRight).scale2(dy21);
+				
+				Vector3d colorStepLeft = right?color3.minus(color1):color2.minus(color1);
+				Vector3d colorStepRight = right?color2.minus(color1):color3.minus(color1);
+
+				colorStepLeft.scale(dzLeft);
+				colorStepRight.scale(dzRight);
 				
 				zLeft += subPixelY*dzLeft;
 				zRight += subPixelY*dzRight;
@@ -266,6 +266,7 @@ public class TriangleRenderer {
 							if(zBuffer.zBufferComparer.compare(_z, z))
 							{
 								pixelRenderer.setPixel(x, y, _color.asColor());
+								//pixelRenderer.setPixel(x, y, 0xffffff00);
 								zBuffer.setZ(x, y, z);
 							}
 							
