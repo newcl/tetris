@@ -37,31 +37,32 @@ public class TriangleRenderer {
 	
 	public void fillTriangle(Vertex3d v1, Vertex3d v2, Vertex3d v3)
 	{
-		Vector4d temp;
+		Vertex3d temp;
+		
+		if(v1.transformedPosition.y > v2.transformedPosition.y)
+		{
+			temp = v1;
+			v1 = v2;
+			v2 = temp;
+		}
+		
+		if(v1.transformedPosition.y > v3.transformedPosition.y)
+		{
+			temp = v1;
+			v1 = v3;
+			v3 = temp;
+		}
+		
+		if(v2.transformedPosition.y > v3.transformedPosition.y)
+		{
+			temp = v2;
+			v2 = v3;
+			v3 = temp;
+		}
+		
 		Vector4d p1 = v1.transformedPosition;
 		Vector4d p2 = v2.transformedPosition;
 		Vector4d p3 = v3.transformedPosition;
-		
-		if(p1.y > p2.y)
-		{
-			temp = p1;
-			p1 = p2;
-			p2 = temp;
-		}
-		
-		if(p1.y > p3.y)
-		{
-			temp = p1;
-			p1 = p3;
-			p3 = temp;
-		}
-		
-		if(p2.y > p3.y)
-		{
-			temp = p2;
-			p2 = p3;
-			p3 = temp;
-		}
 		
 		float dy31 = p3.y - p1.y;
 		
@@ -160,6 +161,7 @@ public class TriangleRenderer {
 							if(zBuffer.zBufferComparer.compare(_z, z))						
 							{
 								pixelRenderer.setPixel(x, y, _color.asColor());
+								//pixelRenderer.setPixel(x, y, right?0xffff0000:0xff00ff00);
 								zBuffer.setZ(x, y, z);					
 							}
 							
@@ -266,7 +268,7 @@ public class TriangleRenderer {
 							if(zBuffer.zBufferComparer.compare(_z, z))
 							{
 								pixelRenderer.setPixel(x, y, _color.asColor());
-								//pixelRenderer.setPixel(x, y, 0xffffff00);
+								//pixelRenderer.setPixel(x, y, right?0xffff0000:0xff00ff00);
 								zBuffer.setZ(x, y, z);
 							}
 							
@@ -287,13 +289,13 @@ public class TriangleRenderer {
 			}
 		}
 		
-		p1.z = p1.w;
-		p2.z = p2.w;
-		p3.z = p3.w;
-		
-		drawLine3d(p1.degenerate(), p3.degenerate(),0xff000000);
-		drawLine3d(p1.degenerate(), p2.degenerate(), 0xff000000);
-		drawLine3d(p2.degenerate(), p3.degenerate(), 0xff000000);
+//		p1.z = p1.w;
+//		p2.z = p2.w;
+//		p3.z = p3.w;
+//		
+//		drawLine3d(p1.degenerate(), p3.degenerate(),0xff000000);
+//		drawLine3d(p1.degenerate(), p2.degenerate(), 0xff000000);
+//		drawLine3d(p2.degenerate(), p3.degenerate(), 0xff000000);
 		
 	}
 	

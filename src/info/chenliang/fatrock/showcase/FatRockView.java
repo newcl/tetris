@@ -1,7 +1,7 @@
 package info.chenliang.fatrock.showcase;
 
+import info.chenliang.ds.Line3d;
 import info.chenliang.ds.Matrix3x3;
-import info.chenliang.ds.Matrix4x4;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
@@ -9,7 +9,6 @@ import info.chenliang.fatrock.CubeSceneObject;
 import info.chenliang.fatrock.DirectionLight;
 import info.chenliang.fatrock.DotLight;
 import info.chenliang.fatrock.FixedSizeZBuffer;
-import info.chenliang.fatrock.Light;
 import info.chenliang.fatrock.Material;
 import info.chenliang.fatrock.PixelRenderer;
 import info.chenliang.fatrock.Triangle;
@@ -17,6 +16,10 @@ import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.fatrock.ZBufferComparerGreaterThan;
 import info.chenliang.fatrock.ZBufferComparerLessThan;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -34,7 +37,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	Camera camera;
 	Paint paint;
 	//Vertex3d[] points, transformedPoints;	
-	float size = 30;
+	float size = 15;
 	int angle;
 	TriangleRenderer triangleRenderer;
 	TriangleRenderer triangleRenderer2;
@@ -105,10 +108,11 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 		fixedColor = new Vector3d(255.0f, 0.0f, 0.0f);
 		
 		r = new Vector3d(1, 1, 1);
+		//r = new Vector3d(0, 1, 0);
 		r.normalize();
 		
 		light = new DirectionLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 1));
-		dotLight = new DotLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 0), 0.1f, 0, 0);
+		dotLight = new DotLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 0), 1.0f, 0, 0);
 	}
 	
 	public void run() {
@@ -122,6 +126,8 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			}
 			canvas.drawColor(0xffffffff);
 			Matrix3x3 rm = Matrix3x3.buildRotateMatrix(r, angle);
+			
+			
 			for(int i=0; i < cube.mesh.vertices.size(); i ++)
 			{
 				Vertex3d v = cube.mesh.vertices.get(i);
@@ -150,6 +156,17 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			{
 				Vertex3d v = cube.mesh.vertices.get(i);
 				light.light(v);
+				//dotLight.light(v);
+			}
+			
+			List<Line3d> lines = new ArrayList<Line3d>();
+			
+			for(int i=0; i < cube.mesh.vertices.size(); i ++)
+			{
+				Vertex3d v = cube.mesh.vertices.get(i);
+				Vector3d p1 = new Vector3d(v.transformedPosition.x, v.transformedPosition.y, v.transformedPosition.z);
+				Vector3d p2 = p1.add(v.normal.scale2(10));
+				lines.add(new Line3d(p1, p2));
 			}
 			
 			for(int i=0; i < cube.mesh.vertices.size(); i ++)
@@ -164,24 +181,70 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 				v2.w /= v2.w;
 				
 				v2 = camera.getProjectionToScreenTransform().transform(v2);
-				v2.w = z*32767;
-				//v2.w = z;
+				//v2.w = z*32767;
+				v2.w = z;
 				
 				v.transformedPosition.copy(v2);
+			}
+			
+			
+			for(int i=0;i < lines.size(); i++)
+			{
+				Line3d l = lines.get(i);
+				
+				Vector4d _p1 = camera.getCameraToProjectionTransform().transform(new Vector4d(l.p1, 1.0f));
+				_p1.x /= _p1.w;
+				_p1.y /= _p1.w;
+				_p1.z /= _p1.w;
+				
+				float z = _p1.w;
+				_p1.w /= _p1.w;
+				
+				_p1 = camera.getProjectionToScreenTransform().transform(_p1);
+				_p1.w = z;
+				
+				l.p1.set(_p1.x, _p1.y, z);
+				
+				Vector4d _p2 = camera.getCameraToProjectionTransform().transform(new Vector4d(l.p2, 1.0f));
+				_p2.x /= _p2.w;
+				_p2.y /= _p2.w;
+				_p2.z /= _p2.w;
+				
+				z = _p2.w;
+				_p2.w /= _p2.w;
+				
+				_p2 = camera.getProjectionToScreenTransform().transform(_p2);
+				_p2.w = z;
+				
+				l.p2.set(_p2.x, _p2.y, z);
 			}
 			
 			triangleRenderer.resetZBuffer();
 			for(int i=0; i < cube.mesh.triangles.size(); i ++)
 			{
-				Triangle triangle = cube.mesh.triangles.get(i);
+//				if(i != 4 && i != 5)
+//				{
+//					continue;
+//				}
 				
+				Triangle triangle = cube.mesh.triangles.get(i);
 				triangleRenderer.fillTriangle(triangle.mesh.vertices.get(triangle.v1), triangle.mesh.vertices.get(triangle.v2), triangle.mesh.vertices.get(triangle.v3));
+			}
+			
+			for(int i=0;i < lines.size(); i++)
+			{
+				Line3d l = lines.get(i);
+				triangleRenderer.drawLine3d(l.p1, l.p2, 0xffff0000);
 			}
 			
 			holder.unlockCanvasAndPost(canvas);
 			
-			angle += 6;
-			angle %= 360;
+			if(rotate)
+			{
+				angle += 6;
+				angle %= 360;	
+			}
+			
 			synchronized(this)
 			{
 				try {

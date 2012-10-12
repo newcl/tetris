@@ -16,6 +16,5 @@ public class Light {
 	
 	public void light(Vertex3d v)
 	{
-		
 	}
 }
