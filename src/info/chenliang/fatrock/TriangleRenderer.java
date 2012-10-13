@@ -154,7 +154,7 @@ public class TriangleRenderer {
 						z += subPixelX*dz;
 						Vector3d _color = new Vector3d(colorLeft); 
 						Vector3d _colorStep = colorRight.minus(colorLeft);
-						_colorStep.scale(1/xSpan);
+						_colorStep.scale(1.0f/xSpan);
 						for(int x=startX; x <= endX; x++)
 						{
 							float _z = zBuffer.getZ(x, y);
@@ -261,7 +261,7 @@ public class TriangleRenderer {
 						
 						Vector3d _color = new Vector3d(colorLeft);
 						Vector3d _colorStep = colorRight.minus(colorLeft);
-						_colorStep.scale(1/xSpan);
+						_colorStep.scale(1.0f/xSpan);
 						for(int x=startX; x <= endX; x++)
 						{
 							float _z = zBuffer.getZ(x, y);

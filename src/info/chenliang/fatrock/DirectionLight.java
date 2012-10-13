@@ -24,6 +24,9 @@ public class DirectionLight extends Light {
 		
 		color = color.add(ambient);
 		color = color.add(diffuse);
+//		color.x *= diffuse.x;
+//		color.y *= diffuse.y;
+//		color.z *= diffuse.z;		
 		
 		color.clamp(0, 255);
 		v.transformedColor.copy(color);

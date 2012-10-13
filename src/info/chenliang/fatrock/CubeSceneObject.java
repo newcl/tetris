@@ -21,33 +21,36 @@ public class CubeSceneObject extends SceneObject {
 		
 		float sizeHalf = size*.5f;
 		
-		/*
-		// 0 ~ 3
-		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(255, 0, 0)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 255, 0)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, sizeHalf), new Vector3d(0, 0, 255)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, sizeHalf), new Vector3d(255, 255, 0)));
+		boolean useGray = true;
+		if(useGray)
+		{
+			// 0 ~ 3
+			mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
+					
+			// 4 ~ 7
+			mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
+		}
+		else
+		{
+			// 0 ~ 3
+			mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(255, 0, 0)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 255, 0)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, sizeHalf), new Vector3d(0, 0, 255)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, sizeHalf), new Vector3d(255, 255, 0)));
+			
+			// 4 ~ 7
+			mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, -sizeHalf), new Vector3d(255, 0, 255)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 255, 255)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, sizeHalf), new Vector3d(125, 125, 0)));
+			mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 125, 125)));
+		}
 		
-		// 4 ~ 7
-		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, -sizeHalf), new Vector3d(255, 0, 255)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 255, 255)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, sizeHalf), new Vector3d(125, 125, 0)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 125, 125)));
-		*/
-		
-		///*
-		// 0 ~ 3
-		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, -sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, -sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
-				
-		// 4 ~ 7
-		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, -sizeHalf), new Vector3d(0, 0, 0)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
-		mesh.vertices.add(new Vertex3d(new Vector4d(-sizeHalf, sizeHalf, sizeHalf), new Vector3d(0, 0, 0)));
-		//*/
 		
 		mesh.triangles.add(new Triangle(mesh, 0, 1, 3));//0
 		mesh.triangles.add(new Triangle(mesh, 3, 1, 2));//1

@@ -100,19 +100,19 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 		
 		Material material = new Material();
 		material.ambient = new Vector3d(1.0f, 1.0f, 1.0f);
-		material.diffuse = new Vector3d(0.8f, 0.8f, 0.8f);
+		material.diffuse = new Vector3d(1f, 1f, 1f);
 		material.specular = new Vector3d(1.0f, 1.0f, 1.0f);
 		material.emission = new Vector3d(1.0f, 1.0f, 1.0f);
 		
-		cube = new CubeSceneObject(null, new Vector3d(0, 0, 90), 30, material);
+		cube = new CubeSceneObject(null, new Vector3d(0, 0, 60), 15, material);
 		fixedColor = new Vector3d(255.0f, 0.0f, 0.0f);
 		
 		r = new Vector3d(1, 1, 1);
-		//r = new Vector3d(0, 1, 0);
+		r = new Vector3d(0, 1, 0);
 		r.normalize();
 		
 		light = new DirectionLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 1));
-		dotLight = new DotLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 0), 1.0f, 0, 0);
+		dotLight = new DotLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, -20), 1.0f, 0, 0);
 	}
 	
 	public void run() {
@@ -155,8 +155,8 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			for(int i=0; i < cube.mesh.vertices.size(); i ++)
 			{
 				Vertex3d v = cube.mesh.vertices.get(i);
-				light.light(v);
-				//dotLight.light(v);
+				//light.light(v);
+				dotLight.light(v);
 			}
 			
 			List<Line3d> lines = new ArrayList<Line3d>();
@@ -165,7 +165,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			{
 				Vertex3d v = cube.mesh.vertices.get(i);
 				Vector3d p1 = new Vector3d(v.transformedPosition.x, v.transformedPosition.y, v.transformedPosition.z);
-				Vector3d p2 = p1.add(v.normal.scale2(10));
+				Vector3d p2 = p1.add(v.normal.scale2(3));
 				lines.add(new Line3d(p1, p2));
 			}
 			
@@ -264,7 +264,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 
 	public void surfaceCreated(SurfaceHolder arg0) {
 		// TODO Auto-generated method stub
-		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 90, 10, 150, getWidth(), getHeight(), 0, 0);
+		camera = new Camera(new Vector3d(0, 20, 0), new Vector3d(0, 0, 40), new Vector3d(0, 1, 0), 90, 10, 150, getWidth(), getHeight(), 0, 0);
 		triangleRenderer = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerGreaterThan()), true);
 		triangleRenderer2 = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerLessThan()), false);
 		new Thread(this).start();
