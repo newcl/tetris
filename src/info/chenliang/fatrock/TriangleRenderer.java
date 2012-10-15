@@ -1,20 +1,25 @@
 package info.chenliang.fatrock;
 
+import android.graphics.Bitmap;
 import info.chenliang.ds.Precision;
+import info.chenliang.ds.Vector2d;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 
 public class TriangleRenderer {
 	public PixelRenderer pixelRenderer;
 	public ZBuffer zBuffer;
-	private final boolean projectionCorrect;
+	private boolean projectionCorrect;
+	private Texture texture;
 	
-	public TriangleRenderer(PixelRenderer pixelRenderer, ZBuffer zBuffer, boolean projectionCorrect)
+	public TriangleRenderer(PixelRenderer pixelRenderer, ZBuffer zBuffer, boolean projectionCorrect, Texture texture)
 	{
 		this.pixelRenderer = pixelRenderer;
 		this.zBuffer = zBuffer;
 		//this.projectionCorrect = false;//projectionCorrect;
 		this.projectionCorrect = projectionCorrect;
+		this.texture = texture;
+		//this.projectionCorrect = false;
 	}
 	
 	public void resetZBuffer()
@@ -83,9 +88,15 @@ public class TriangleRenderer {
 			return;
 		}
 		
+		Bitmap bitmap = texture.bitmap;
+		
 		Vector3d color1 = v1.transformedColor;
 		Vector3d color2 = v2.transformedColor;
 		Vector3d color3 = v3.transformedColor;
+		
+		Vector2d texturePosition1 = v1.texturePosition;
+		Vector2d texturePosition2 = v2.texturePosition;
+		Vector2d texturePosition3 = v3.texturePosition;
 		
 		boolean right = cross > 0;		
 		
@@ -96,6 +107,17 @@ public class TriangleRenderer {
 		
 		Vector3d _colorStepLeft = new Vector3d(0, 0, 0);
 		Vector3d _colorStepRight = new Vector3d(0, 0, 0);
+		
+		Vector2d _dTexturePositionLeft = new Vector2d(0.0f, 0.0f);
+		Vector2d _dTexturePositionRight = new Vector2d(0.0f, 0.0f);
+		
+		float oneOverZ1 = 1 / p1.w;
+		float oneOverZ2 = 1 / p2.w;
+		float oneOverZ3 = 1 / p3.w;
+		
+		Vector2d texturePositionOverZ1 = new Vector2d(texturePosition1, oneOverZ1);
+		Vector2d texturePositionOverZ2 = new Vector2d(texturePosition2, oneOverZ2);
+		Vector2d texturePositionOverZ3 = new Vector2d(texturePosition3, oneOverZ3);
 		
 		if(dy21 > 0.0f)
 		{
@@ -111,16 +133,43 @@ public class TriangleRenderer {
 				dxLeft = right ? dx31/dy31 : dx21/dy21;
 				dxRight = right ? dx21/dy21 : dx31/dy31;
 				
+				Vector2d texturePositionLeft = null;
+				Vector2d texturePositionRight = null;
+				
+				Vector2d dTexturePositionLeft = null;
+				Vector2d dTexturePositionRight = null;
+				
 				if(projectionCorrect)
 				{
 					dzLeft = right ? _dz31/dy31 : _dz21/dy21;
 					dzRight = right ? _dz21/dy21 : _dz31/dy31;
+					
+					texturePositionLeft = new Vector2d(texturePositionOverZ1);
+					texturePositionRight = new Vector2d(texturePositionOverZ1);
+					
+					dTexturePositionLeft = right?texturePositionOverZ3.minus(texturePositionOverZ1):texturePositionOverZ2.minus(texturePositionOverZ1);
+					dTexturePositionLeft.scale(right?1/(oneOverZ3-oneOverZ1):1/(oneOverZ2-oneOverZ1));
+					
+					dTexturePositionRight = right?texturePositionOverZ2.minus(texturePositionOverZ1):texturePositionOverZ3.minus(texturePositionOverZ1);
+					dTexturePositionRight.scale(right?1/(oneOverZ2-oneOverZ1):1/(oneOverZ3-oneOverZ1));
 				}
 				else
 				{
 					dzLeft = right ? dz31/dy31 : dz21/dy21;
 					dzRight = right ? dz21/dy21 : dz31/dy31;
+					
+					texturePositionLeft = texturePosition1;
+					texturePositionRight = texturePosition1;
+					
+					dTexturePositionLeft = right?texturePosition3.minus(texturePosition1):texturePosition2.minus(texturePosition1);
+					dTexturePositionLeft.scale(right?1/dy31:1/dy21);
+					
+					dTexturePositionRight = right?texturePosition2.minus(texturePosition1):texturePosition3.minus(texturePosition1);
+					dTexturePositionRight.scale(right?1/dy21:1/dy31);
 				}
+				
+				_dTexturePositionLeft.copy(dTexturePositionLeft);
+				_dTexturePositionRight.copy(dTexturePositionRight);
 				
 				Vector3d colorStepLeft = right?color3.minus(color1):color2.minus(color1);
 				Vector3d colorStepRight = right?color2.minus(color1):color3.minus(color1);
@@ -155,12 +204,39 @@ public class TriangleRenderer {
 						Vector3d _color = new Vector3d(colorLeft); 
 						Vector3d _colorStep = colorRight.minus(colorLeft);
 						_colorStep.scale(1.0f/xSpan);
+						
+						Vector2d texturePositionStep = texturePositionRight.minus(texturePositionLeft);
+						texturePositionStep.scale(1.0f/xSpan);
+//						if(Math.abs(zRight - zLeft) < 0.001)
+//						{
+//							texturePositionStep.set(0, 0);
+//						}
+//						else
+//						{
+//							texturePositionStep.scale(1/(zRight-zLeft));
+//						}
+						
+						Vector2d texturePosition = new Vector2d(texturePositionLeft);
 						for(int x=startX; x <= endX; x++)
 						{
 							float _z = zBuffer.getZ(x, y);
 							if(zBuffer.zBufferComparer.compare(_z, z))						
 							{
-								pixelRenderer.setPixel(x, y, _color.asColor());
+								if(projectionCorrect)
+								{
+									texturePosition.scale(1/z);									
+								}
+								
+								int textureX = (int)(texturePosition.x * bitmap.getWidth());
+								int textureY = (int)(texturePosition.y * bitmap.getHeight());
+								
+//								textureX = clamp(textureX, 0, bitmap.getWidth() - 1);
+//								textureY = clamp(textureY, 0, bitmap.getHeight() - 1);
+								
+								int textureColor = bitmap.getPixel(textureX, textureY);
+								
+								pixelRenderer.setPixel(x, y, textureColor);
+								//pixelRenderer.setPixel(x, y, _color.asColor());
 								//pixelRenderer.setPixel(x, y, right?0xffff0000:0xff00ff00);
 								zBuffer.setZ(x, y, z);					
 							}
@@ -168,6 +244,7 @@ public class TriangleRenderer {
 							z += dz;
 							_color = _color.add(_colorStep);
 							
+							texturePosition = texturePosition.add(texturePositionStep);
 						}
 					}
 					
@@ -179,12 +256,16 @@ public class TriangleRenderer {
 					
 					colorLeft = colorLeft.add(colorStepLeft);
 					colorRight = colorRight.add(colorStepRight);
+					
+					texturePositionLeft = texturePositionLeft.add(dTexturePositionLeft);
+					texturePositionRight = texturePositionRight.add(dTexturePositionRight);
+					
 				}
 			}
 			
 				
 		}
-
+if(true)return;
 		float dy32 = p3.y - p2.y;
 		if(dy32 > 0.0f)
 		{
@@ -203,15 +284,39 @@ public class TriangleRenderer {
 				float zLeft = 0.0f;
 				float zRight = 0.0f;
 				
+				float dz32 = p3.w - p2.w;
+				float _dz32 = 1/p3.w - 1/p2.w;
+				
+				Vector2d texturePositionLeft = null;
+				Vector2d texturePositionRight = null;
+				
+				Vector2d dTexturePositionLeft = null;
+				Vector2d dTexturePositionRight = null;
+				
+				texturePositionLeft = right?texturePosition1.add(_dTexturePositionLeft.scale2(dy21)):new Vector2d(texturePosition2);
+				texturePositionRight = right?new Vector2d(texturePosition2):texturePosition1.add(_dTexturePositionRight.scale2(dy21));
+				
 				if(projectionCorrect)
 				{
 					zLeft = right ? 1/p1.w+dy21*dzLeft : 1/p2.w;
 					zRight = right ? 1/p2.w: 1/p1.w+dzRight*dy21;
+					
+					dTexturePositionLeft = right?texturePositionOverZ3.minus(texturePositionOverZ1):texturePositionOverZ3.minus(texturePositionOverZ2);
+					dTexturePositionLeft.scale(right?1/(oneOverZ3-oneOverZ1):1/(oneOverZ3-oneOverZ2));
+					
+					dTexturePositionRight = right?texturePositionOverZ3.minus(texturePositionOverZ2):texturePositionOverZ3.minus(texturePositionOverZ1);
+					dTexturePositionRight.scale(right?1/(oneOverZ3-oneOverZ2):1/(oneOverZ3-oneOverZ1));
 				}
 				else
 				{
 					zLeft = right ? p1.w+dy21*dzLeft : p2.w;
 					zRight = right ? p2.w: p1.w+dzRight*dy21;
+					
+					dTexturePositionLeft = right?texturePosition3.minus(texturePosition1):texturePosition3.minus(texturePosition2);
+					dTexturePositionLeft.scale(right?1/dy31:1/dy32);
+					
+					dTexturePositionRight = right?texturePosition3.minus(texturePosition2):texturePosition3.minus(texturePosition1);
+					dTexturePositionRight.scale(right?1/dy32:1/dy31);
 				}
 				
 				dxLeft = right ? dx31/dy31 : dx32/dy32;
@@ -220,8 +325,7 @@ public class TriangleRenderer {
 				xLeft += subPixelY*dxLeft;
 				xRight += subPixelY*dxRight;
 
-				float dz32 = p3.w - p2.w;
-				float _dz32 = 1/p3.w - 1/p2.w;
+				
 				
 				if(projectionCorrect)
 				{
@@ -262,18 +366,33 @@ public class TriangleRenderer {
 						Vector3d _color = new Vector3d(colorLeft);
 						Vector3d _colorStep = colorRight.minus(colorLeft);
 						_colorStep.scale(1.0f/xSpan);
+						
+						Vector2d texturePositionStep = texturePositionRight.minus(texturePositionLeft);
+						texturePositionStep.scale(1/(zRight-zLeft));
+						Vector2d texturePosition = new Vector2d(texturePositionLeft);
 						for(int x=startX; x <= endX; x++)
 						{
 							float _z = zBuffer.getZ(x, y);
 							if(zBuffer.zBufferComparer.compare(_z, z))
 							{
-								pixelRenderer.setPixel(x, y, _color.asColor());
+								if(projectionCorrect)
+								{
+									texturePosition.scale(1/z);									
+								}
+								
+								int textureX = (int)(texturePosition.x * bitmap.getWidth());
+								int textureY = (int)(texturePosition.y * bitmap.getHeight());
+								
+								int textureColor = bitmap.getPixel(textureX, textureY);
+								pixelRenderer.setPixel(x, y, textureColor);
+								//pixelRenderer.setPixel(x, y, _color.asColor());
 								//pixelRenderer.setPixel(x, y, right?0xffff0000:0xff00ff00);
 								zBuffer.setZ(x, y, z);
 							}
 							
 							z += dz;
 							_color = _color.add(_colorStep);
+							texturePosition = texturePosition.add(texturePositionStep);
 						}
 					}
 					
@@ -285,6 +404,9 @@ public class TriangleRenderer {
 					
 					colorLeft = colorLeft.add(colorStepLeft);
 					colorRight = colorRight.add(colorStepRight);
+					
+					texturePositionLeft = texturePositionLeft.add(dTexturePositionLeft);
+					texturePositionRight = texturePositionRight.add(dTexturePositionRight);
 				}	
 			}
 		}
@@ -347,6 +469,13 @@ public class TriangleRenderer {
 			xStart += dx;
 			z += dz;
 		}
+	}
+	
+	public int clamp(int v, int min, int max)
+	{
+		v = Math.min(max, v);
+		v = Math.max(min, v);
+		return v;
 	}
 	
 	/*

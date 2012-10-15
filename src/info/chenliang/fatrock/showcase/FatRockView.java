@@ -1,7 +1,9 @@
 package info.chenliang.fatrock.showcase;
 
 import info.chenliang.ds.Line3d;
+
 import info.chenliang.ds.Matrix3x3;
+import info.chenliang.ds.Vector2d;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
@@ -11,16 +13,20 @@ import info.chenliang.fatrock.DotLight;
 import info.chenliang.fatrock.FixedSizeZBuffer;
 import info.chenliang.fatrock.Material;
 import info.chenliang.fatrock.PixelRenderer;
+import info.chenliang.fatrock.Texture;
 import info.chenliang.fatrock.Triangle;
 import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.fatrock.ZBufferComparerGreaterThan;
 import info.chenliang.fatrock.ZBufferComparerLessThan;
+import info.chenliang.tetris.R;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Paint.Cap;
@@ -49,6 +55,8 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	Vector3d r = new Vector3d(1, 1, 1);
 	DirectionLight light;
 	DotLight dotLight;
+	Bitmap bitmap;
+	Texture texture;
 	public FatRockView(Context context)
 	{
 		super(context);
@@ -113,6 +121,9 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 		
 		light = new DirectionLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 1));
 		dotLight = new DotLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, -20), 1.0f, 0, 0);
+
+        bitmap = BitmapFactory.decodeResource(getResources(), R.raw.wood2);
+        texture = new Texture(bitmap);
 	}
 	
 	public void run() {
@@ -228,7 +239,17 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 //				}
 				
 				Triangle triangle = cube.mesh.triangles.get(i);
-				triangleRenderer.fillTriangle(triangle.mesh.vertices.get(triangle.v1), triangle.mesh.vertices.get(triangle.v2), triangle.mesh.vertices.get(triangle.v3));
+				Vertex3d v1, v2, v3;
+				
+				v1 = triangle.mesh.vertices.get(triangle.v1);
+				v2 = triangle.mesh.vertices.get(triangle.v2);
+				v3 = triangle.mesh.vertices.get(triangle.v3);
+				
+				v1.texturePosition = new Vector2d(triangle.texturePosition1);
+				v2.texturePosition = new Vector2d(triangle.texturePosition2);
+				v3.texturePosition = new Vector2d(triangle.texturePosition3);
+				
+				triangleRenderer.fillTriangle(v1, v2, v3);
 			}
 			
 			for(int i=0;i < lines.size(); i++)
@@ -265,8 +286,8 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 	public void surfaceCreated(SurfaceHolder arg0) {
 		// TODO Auto-generated method stub
 		camera = new Camera(new Vector3d(0, 20, 0), new Vector3d(0, 0, 40), new Vector3d(0, 1, 0), 90, 10, 150, getWidth(), getHeight(), 0, 0);
-		triangleRenderer = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerGreaterThan()), true);
-		triangleRenderer2 = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerLessThan()), false);
+		triangleRenderer = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerGreaterThan()), true, texture);
+		triangleRenderer2 = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerLessThan()), false, texture);
 		new Thread(this).start();
 	}
 

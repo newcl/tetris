@@ -1,5 +1,13 @@
 package info.chenliang.fatrock;
 
-public class Texture {
+import android.graphics.Bitmap;
 
+public class Texture {
+	public Bitmap bitmap;
+
+	public Texture(Bitmap bitmap) {
+		super();
+		this.bitmap = bitmap;
+	}
+	
 }

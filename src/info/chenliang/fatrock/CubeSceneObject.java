@@ -2,6 +2,7 @@ package info.chenliang.fatrock;
 
 import java.util.Arrays;
 
+import info.chenliang.ds.Vector2d;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 
@@ -52,23 +53,23 @@ public class CubeSceneObject extends SceneObject {
 		}
 		
 		
-		mesh.triangles.add(new Triangle(mesh, 0, 1, 3));//0
-		mesh.triangles.add(new Triangle(mesh, 3, 1, 2));//1
+		mesh.triangles.add(new Triangle(mesh, 0, 1, 3, new Vector2d(0.0f, 1.0f), new Vector2d(1.0f, 1.0f), new Vector2d(0.0f, 0.0f)));//0
+		mesh.triangles.add(new Triangle(mesh, 3, 1, 2, new Vector2d(0.0f, 0.0f), new Vector2d(1.0f, 1.0f), new Vector2d(1.0f, 0.0f)));//1
 		
-		mesh.triangles.add(new Triangle(mesh, 7, 5, 4));//2
-		mesh.triangles.add(new Triangle(mesh, 7, 6, 5));//3
+		mesh.triangles.add(new Triangle(mesh, 7, 5, 4, new Vector2d(0.0f, 0.0f), new Vector2d(1.0f, 1.0f), new Vector2d(0.0f, 1.0f)));//2
+		mesh.triangles.add(new Triangle(mesh, 7, 6, 5, new Vector2d(0.0f, 0.0f), new Vector2d(1.0f, 0.0f), new Vector2d(1.0f, 1.0f)));//3
 		
-		mesh.triangles.add(new Triangle(mesh, 0, 5, 1));//4
-		mesh.triangles.add(new Triangle(mesh, 0, 4, 5));//5
+		mesh.triangles.add(new Triangle(mesh, 0, 5, 1, new Vector2d(0.0f, 1.0f), new Vector2d(1.0f, 0.0f), new Vector2d(1.0f, 1.0f)));//4
+		mesh.triangles.add(new Triangle(mesh, 0, 4, 5, new Vector2d(0.0f, 1.0f), new Vector2d(0.0f, 0.0f), new Vector2d(1.0f, 0.0f)));//5
 		
-		mesh.triangles.add(new Triangle(mesh, 2, 1, 5));//6
-		mesh.triangles.add(new Triangle(mesh, 5, 6, 2));//7
+		mesh.triangles.add(new Triangle(mesh, 2, 1, 5, new Vector2d(1.0f, 1.0f), new Vector2d(0.0f, 1.0f), new Vector2d(0.0f, 0.0f)));//6
+		mesh.triangles.add(new Triangle(mesh, 5, 6, 2, new Vector2d(0.0f, 0.0f), new Vector2d(1.0f, 0.0f), new Vector2d(1.0f, 1.0f)));//7
 		
-		mesh.triangles.add(new Triangle(mesh, 3, 2, 6));//8
-		mesh.triangles.add(new Triangle(mesh, 3, 6, 7));//9
+		mesh.triangles.add(new Triangle(mesh, 3, 2, 6, new Vector2d(1.0f, 1.0f), new Vector2d(0.0f, 1.0f), new Vector2d(0.0f, 0.0f)));//8
+		mesh.triangles.add(new Triangle(mesh, 3, 6, 7, new Vector2d(1.0f, 1.0f), new Vector2d(0.0f, 0.0f), new Vector2d(1.0f, 0.0f)));//9
 		
-		mesh.triangles.add(new Triangle(mesh, 3, 4, 0));//10
-		mesh.triangles.add(new Triangle(mesh, 4, 3, 7));//11
+		mesh.triangles.add(new Triangle(mesh, 3, 4, 0, new Vector2d(0.0f, 1.0f), new Vector2d(1.0f, 0.0f), new Vector2d(1.0f, 1.0f)));//10
+		mesh.triangles.add(new Triangle(mesh, 4, 3, 7, new Vector2d(1.0f, 0.0f), new Vector2d(0.0f, 1.0f), new Vector2d(0.0f, 0.0f)));//11
 		
 		mesh.vertex2TriangleMap.put(0, Arrays.asList(mesh.triangles.get(0), mesh.triangles.get(4), mesh.triangles.get(10)));
 		mesh.vertex2TriangleMap.put(1, Arrays.asList(mesh.triangles.get(1), mesh.triangles.get(4), mesh.triangles.get(6)));
