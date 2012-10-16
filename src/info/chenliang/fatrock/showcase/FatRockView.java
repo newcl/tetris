@@ -112,11 +112,11 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 		material.specular = new Vector3d(1.0f, 1.0f, 1.0f);
 		material.emission = new Vector3d(1.0f, 1.0f, 1.0f);
 		
-		cube = new CubeSceneObject(null, new Vector3d(0, 0, 60), 15, material);
+		cube = new CubeSceneObject(null, new Vector3d(0, 0, 60), 25, material);
 		fixedColor = new Vector3d(255.0f, 0.0f, 0.0f);
 		
 		r = new Vector3d(1, 1, 1);
-		r = new Vector3d(0, 1, 0);
+		//r = new Vector3d(0, 1, 0);
 		r.normalize();
 		
 		light = new DirectionLight(new Vector3d(0, 0, 0), new Vector3d(255, 255, 255), new Vector3d(0.0f, 0.0f, 0.0f), new Vector3d(0, 0, 1));
@@ -255,7 +255,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 			for(int i=0;i < lines.size(); i++)
 			{
 				Line3d l = lines.get(i);
-				triangleRenderer.drawLine3d(l.p1, l.p2, 0xffff0000);
+				//triangleRenderer.drawLine3d(l.p1, l.p2, 0xffff0000);
 			}
 			
 			holder.unlockCanvasAndPost(canvas);
@@ -285,7 +285,7 @@ public class FatRockView extends SurfaceView implements Callback, Runnable, Pixe
 
 	public void surfaceCreated(SurfaceHolder arg0) {
 		// TODO Auto-generated method stub
-		camera = new Camera(new Vector3d(0, 20, 0), new Vector3d(0, 0, 40), new Vector3d(0, 1, 0), 90, 10, 150, getWidth(), getHeight(), 0, 0);
+		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), 90, 10, 150, getWidth(), getHeight(), 0, 0);
 		triangleRenderer = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerGreaterThan()), true, texture);
 		triangleRenderer2 = new TriangleRenderer(this, new FixedSizeZBuffer(getWidth(), getHeight(), new ZBufferComparerLessThan()), false, texture);
 		new Thread(this).start();

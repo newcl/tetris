@@ -1,6 +1,8 @@
 package info.chenliang.fatrock;
 
 import android.graphics.Bitmap;
+import android.os.Debug;
+import android.util.Log;
 import info.chenliang.ds.Precision;
 import info.chenliang.ds.Vector2d;
 import info.chenliang.ds.Vector3d;
@@ -148,10 +150,10 @@ public class TriangleRenderer {
 					texturePositionRight = new Vector2d(texturePositionOverZ1);
 					
 					dTexturePositionLeft = right?texturePositionOverZ3.minus(texturePositionOverZ1):texturePositionOverZ2.minus(texturePositionOverZ1);
-					dTexturePositionLeft.scale(right?1/(oneOverZ3-oneOverZ1):1/(oneOverZ2-oneOverZ1));
+					dTexturePositionLeft.scale(right?1/dy31:1/dy21);
 					
 					dTexturePositionRight = right?texturePositionOverZ2.minus(texturePositionOverZ1):texturePositionOverZ3.minus(texturePositionOverZ1);
-					dTexturePositionRight.scale(right?1/(oneOverZ2-oneOverZ1):1/(oneOverZ3-oneOverZ1));
+					dTexturePositionRight.scale(right?1/dy21:1/dy31);
 				}
 				else
 				{
@@ -207,14 +209,6 @@ public class TriangleRenderer {
 						
 						Vector2d texturePositionStep = texturePositionRight.minus(texturePositionLeft);
 						texturePositionStep.scale(1.0f/xSpan);
-//						if(Math.abs(zRight - zLeft) < 0.001)
-//						{
-//							texturePositionStep.set(0, 0);
-//						}
-//						else
-//						{
-//							texturePositionStep.scale(1/(zRight-zLeft));
-//						}
 						
 						Vector2d texturePosition = new Vector2d(texturePositionLeft);
 						for(int x=startX; x <= endX; x++)
@@ -222,17 +216,19 @@ public class TriangleRenderer {
 							float _z = zBuffer.getZ(x, y);
 							if(zBuffer.zBufferComparer.compare(_z, z))						
 							{
+								Vector2d _texturePosition = new Vector2d(texturePosition);
+								
 								if(projectionCorrect)
 								{
-									texturePosition.scale(1/z);									
+									_texturePosition.scale(1/z);									
 								}
 								
-								int textureX = (int)(texturePosition.x * bitmap.getWidth());
-								int textureY = (int)(texturePosition.y * bitmap.getHeight());
-								
-//								textureX = clamp(textureX, 0, bitmap.getWidth() - 1);
-//								textureY = clamp(textureY, 0, bitmap.getHeight() - 1);
-								
+								int textureX = (int)(_texturePosition.x * (bitmap.getWidth()-1));
+								int textureY = (int)(_texturePosition.y * (bitmap.getHeight()-1));
+								//Log.d("shit", _texturePosition.x+" " + _texturePosition.y + " " + textureX + " " + textureY);
+								textureX = clamp(textureX, 0, bitmap.getWidth() - 1);
+								textureY = clamp(textureY, 0, bitmap.getHeight() - 1);
+								//if(true)continue;
 								int textureColor = bitmap.getPixel(textureX, textureY);
 								
 								pixelRenderer.setPixel(x, y, textureColor);
@@ -265,7 +261,7 @@ public class TriangleRenderer {
 			
 				
 		}
-if(true)return;
+//if(true)return;
 		float dy32 = p3.y - p2.y;
 		if(dy32 > 0.0f)
 		{
@@ -293,8 +289,8 @@ if(true)return;
 				Vector2d dTexturePositionLeft = null;
 				Vector2d dTexturePositionRight = null;
 				
-				texturePositionLeft = right?texturePosition1.add(_dTexturePositionLeft.scale2(dy21)):new Vector2d(texturePosition2);
-				texturePositionRight = right?new Vector2d(texturePosition2):texturePosition1.add(_dTexturePositionRight.scale2(dy21));
+				texturePositionLeft = right?texturePositionOverZ1.add(_dTexturePositionLeft.scale2(dy21)):new Vector2d(texturePositionOverZ2);
+				texturePositionRight = right?new Vector2d(texturePositionOverZ2):texturePositionOverZ1.add(_dTexturePositionRight.scale2(dy21));
 				
 				if(projectionCorrect)
 				{
@@ -302,10 +298,7 @@ if(true)return;
 					zRight = right ? 1/p2.w: 1/p1.w+dzRight*dy21;
 					
 					dTexturePositionLeft = right?texturePositionOverZ3.minus(texturePositionOverZ1):texturePositionOverZ3.minus(texturePositionOverZ2);
-					dTexturePositionLeft.scale(right?1/(oneOverZ3-oneOverZ1):1/(oneOverZ3-oneOverZ2));
-					
 					dTexturePositionRight = right?texturePositionOverZ3.minus(texturePositionOverZ2):texturePositionOverZ3.minus(texturePositionOverZ1);
-					dTexturePositionRight.scale(right?1/(oneOverZ3-oneOverZ2):1/(oneOverZ3-oneOverZ1));
 				}
 				else
 				{
@@ -313,11 +306,11 @@ if(true)return;
 					zRight = right ? p2.w: p1.w+dzRight*dy21;
 					
 					dTexturePositionLeft = right?texturePosition3.minus(texturePosition1):texturePosition3.minus(texturePosition2);
-					dTexturePositionLeft.scale(right?1/dy31:1/dy32);
-					
 					dTexturePositionRight = right?texturePosition3.minus(texturePosition2):texturePosition3.minus(texturePosition1);
-					dTexturePositionRight.scale(right?1/dy32:1/dy31);
 				}
+				
+				dTexturePositionLeft.scale(right?1/dy31:1/dy32);
+				dTexturePositionRight.scale(right?1/dy32:1/dy31);
 				
 				dxLeft = right ? dx31/dy31 : dx32/dy32;
 				dxRight = right ? dx32/dy32 : dx31/dy31;
@@ -325,8 +318,6 @@ if(true)return;
 				xLeft += subPixelY*dxLeft;
 				xRight += subPixelY*dxRight;
 
-				
-				
 				if(projectionCorrect)
 				{
 					dzLeft = right ? _dz31/dy31 : _dz32/dy32;
@@ -368,20 +359,25 @@ if(true)return;
 						_colorStep.scale(1.0f/xSpan);
 						
 						Vector2d texturePositionStep = texturePositionRight.minus(texturePositionLeft);
-						texturePositionStep.scale(1/(zRight-zLeft));
+						texturePositionStep.scale(1.0f/xSpan);
 						Vector2d texturePosition = new Vector2d(texturePositionLeft);
 						for(int x=startX; x <= endX; x++)
 						{
 							float _z = zBuffer.getZ(x, y);
 							if(zBuffer.zBufferComparer.compare(_z, z))
 							{
+								Vector2d _texturePosition = new Vector2d(texturePosition);
+								
 								if(projectionCorrect)
 								{
-									texturePosition.scale(1/z);									
+									_texturePosition.scale(1/z);									
 								}
 								
-								int textureX = (int)(texturePosition.x * bitmap.getWidth());
-								int textureY = (int)(texturePosition.y * bitmap.getHeight());
+								int textureX = (int)(_texturePosition.x * (bitmap.getWidth()-1));
+								int textureY = (int)(_texturePosition.y * (bitmap.getHeight()-1));
+								
+								textureX = clamp(textureX, 0, bitmap.getWidth() - 1);
+								textureY = clamp(textureY, 0, bitmap.getHeight() - 1);
 								
 								int textureColor = bitmap.getPixel(textureX, textureY);
 								pixelRenderer.setPixel(x, y, textureColor);
