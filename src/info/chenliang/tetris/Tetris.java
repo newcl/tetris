@@ -221,6 +221,9 @@ public class Tetris implements Runnable{
 				boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
 				if(testDown){
 					if(blockContainer.canMoveDown(currentBlock)){
+						
+						
+						
 						currentBlock.translate(0, 2);
 					}else{
 						fixCurrentBlock();
@@ -748,8 +751,6 @@ public class Tetris implements Runnable{
 				gameObjects.add(gameObject);
 				
 				xOffset += cellSize;
-				
-				return;
 			}
 			
 		}
