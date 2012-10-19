@@ -1,5 +1,7 @@
 package info.chenliang.tetris;
 
+import info.chenliang.fatrock.SceneObject;
+
 
 public class GameObject implements Tickable{
 	
@@ -14,6 +16,8 @@ public class GameObject implements Tickable{
 	
 	protected int lifeTime = 500;
 	protected int color;
+	
+	protected SceneObject sceneObject;
 	
 	public GameObject()
 	{
