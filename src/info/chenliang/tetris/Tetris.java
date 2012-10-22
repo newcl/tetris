@@ -88,8 +88,8 @@ public class Tetris implements Runnable{
 	private float cubeZ;
 	private float scoreInfoX, scoreInfoY;
 	//private int cameraScreenSize;
-	private float cameraScreenWidth, cameraScreenHeight;
-	private float cubeSize;
+	private int cameraScreenWidth, cameraScreenHeight;
+	private int cubeSize;
 	
 	public Tetris(GameCanvas gameCanvas)
 	{
@@ -173,11 +173,16 @@ public class Tetris implements Runnable{
 		float d = (float)(1 / Math.tan(Math.toRadians(viewAngle/2)));
 		cubeSize = cellSize;
 		float aspectRatio = 1;
-		cameraScreenWidth = cubeSize * aspectRatio * (cubeZ - cubeSize/2) / (aspectRatio*cubeZ + (d - aspectRatio)*cubeSize/2);
-		cameraScreenHeight = cubeSize * (cubeZ - cubeSize/2) / (cubeZ + (cubeSize/2)*(d-1));
+		//cameraScreenWidth = cubeSize * aspectRatio * (cubeZ - cubeSize/2) / (aspectRatio*cubeZ + (d - aspectRatio)*cubeSize/2);
+		//cameraScreenHeight = cubeSize * (cubeZ - cubeSize/2) / (cubeZ + (cubeSize/2)*(d-1));
 		
-		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, (int)cameraScreenWidth, (int)cameraScreenHeight, 0, 0);
-		triangleRenderer = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight(), new ZBufferComparerGreaterThan()), true);		
+		cameraScreenWidth = 2 * cubeSize;
+		cameraScreenHeight = 2 * cubeSize;
+		//TODO
+		//cubeZ = ?
+		
+		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, cameraScreenWidth, cameraScreenHeight, 0, 0);
+		triangleRenderer = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(cameraScreenWidth, cameraScreenHeight, new ZBufferComparerGreaterThan()), true);		
 	}
 	
 	public void run() {
@@ -639,8 +644,6 @@ public class Tetris implements Runnable{
 	
 	private void drawGameObjects()
 	{
-		triangleRenderer.resetZBuffer();
-		
 		for(int i=0;i < gameObjects.size();i++)
 		{
 			GameObject gameObject = gameObjects.get(i);

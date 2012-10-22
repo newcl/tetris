@@ -86,7 +86,7 @@ public class GameObject3d extends GameObject{
 		sceneObject.rotate(n, angle);
 		//sceneObject.update();
 		
-		triangleRenderer.resetZBuffer();
+		//triangleRenderer.resetZBuffer();
 		
 		for(int i=0; i < sceneObject.mesh.vertices.size(); i ++)
 		{
@@ -127,6 +127,7 @@ public class GameObject3d extends GameObject{
 	int ct = 0;
 	public void draw(GameCanvas canvas) 
 	{
+		triangleRenderer.resetZBuffer();
 		for (int i = 0; i < sceneObject.mesh.triangles.size(); i++) 
 		{
 			Triangle triangle = sceneObject.mesh.triangles.get(i);
