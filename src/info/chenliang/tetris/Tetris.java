@@ -4,9 +4,10 @@ import info.chenliang.debug.Assert;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.fatrock.Camera;
 import info.chenliang.fatrock.DynamicZBuffer;
-import info.chenliang.fatrock.TriangleRenderer;
 import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.fatrock.ZBufferComparerGreaterThan;
+import info.chenliang.fatrock.trianglerenderers.TriangleRenderer;
+import info.chenliang.fatrock.trianglerenderers.TriangleRendererConstant;
 import info.chenliang.tetris.sound.SoundManager;
 
 import java.util.ArrayList;
@@ -84,9 +85,11 @@ public class Tetris implements Runnable{
 	private TriangleRenderer triangleRenderer;
 	private float near, far;
 	private float viewAngle;
-	private float blockZ;
+	private float cubeZ;
 	private float scoreInfoX, scoreInfoY;
-	private int screenSize;
+	//private int cameraScreenSize;
+	private float cameraScreenWidth, cameraScreenHeight;
+	private float cubeSize;
 	
 	public Tetris(GameCanvas gameCanvas)
 	{
@@ -131,13 +134,50 @@ public class Tetris implements Runnable{
 		soundManager = new SoundManager();
 		soundManager.init();
 		
+		init3dParams();
+	}
+	
+	private void init3dParams()
+	{
 		viewAngle = 90;
 		near = 10;
 		far = 200;
-		blockZ = near + (far - near)/2;
-		screenSize = (int)(blockZ - cellSize/2)*2;
-		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, screenSize, screenSize, 0, 0);
-		triangleRenderer = new TriangleRenderer(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight(), new ZBufferComparerGreaterThan()), true, null);
+		cubeZ = near + (far - near)/2;
+		
+		//REMEMBER we are in camera space right now
+		//for the cube to appear the same size as the block when it's created,
+		//we can use several ways to do this, but let's take a look what factors
+		//that are gonna affect the final size of the 3d cube on the screen
+		//1 z of the cube let's say z = near + (far - near)/2
+		//2 size of the cube let's say size = 10
+		//for y direction, on the projection plane:  
+		//yprojection / (size/2) = d / ((cube z) - size/2)  
+		// we can get: yprojection = (d * size/2) / ((cube z) - size/2)
+		// d = 1 / tan(viewAngle / 2)
+		//for x direction, on the projection plane: almost the same thing
+		//we only need to take the aspect ratio into consideration
+		//xprojection*AR/(size/2) = d / ((cube z) - size/2)
+		//
+		//when projected on screen
+		//for y direction:
+		//yscreen = -yprojection*(screenHeight/2) + (screenHeight/2);
+		//        = screenHeight/2*(1-yprojection)
+		//xscreen = xprojection*(screenWidth/2) + (screenWidth/2)
+		//        = screenWidth/2*(1 + xprojection)
+		//we know we want the yscreen & xscreen to be (cube size / 2)
+		//so we can compute the screen width & screen height using this formula:
+		//
+		//screenHeight = cubeSize * (cubeZ-cubeSize/2) / (cubeZ+(cubeSize/2)*(d-1))
+		//screenWidth = cubeSize * AR * (cubeZ-cubeSize/2) / (AR*cubeZ + (d-AR)*cubeSize/2)
+		//
+		float d = (float)(1 / Math.tan(Math.toRadians(viewAngle/2)));
+		cubeSize = cellSize;
+		float aspectRatio = 1;
+		cameraScreenWidth = cubeSize * aspectRatio * (cubeZ - cubeSize/2) / (aspectRatio*cubeZ + (d - aspectRatio)*cubeSize/2);
+		cameraScreenHeight = cubeSize * (cubeZ - cubeSize/2) / (cubeZ + (cubeSize/2)*(d-1));
+		
+		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, (int)cameraScreenWidth, (int)cameraScreenHeight, 0, 0);
+		triangleRenderer = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight(), new ZBufferComparerGreaterThan()), true);		
 	}
 	
 	public void run() {
@@ -221,9 +261,7 @@ public class Tetris implements Runnable{
 				boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
 				if(testDown){
 					if(blockContainer.canMoveDown(currentBlock)){
-						
-						
-						
+						add3dCubeForBlock(currentBlock);
 						currentBlock.translate(0, 2);
 					}else{
 						fixCurrentBlock();
@@ -433,7 +471,6 @@ public class Tetris implements Runnable{
 			{
 				if(!cellMark.containsKey(x+""+y))
 				{
-					
 					int cellX = (block.getX() + x) / 2;
 					int cellY = (block.getY() + y) / 2;
 					
@@ -560,6 +597,43 @@ public class Tetris implements Runnable{
 				gameCanvas.fillRect(bx, by, bx + cellSize, by + cellSize, block.getColor(), 0xff);
 				gameCanvas.drawRect(bx, by, bx + cellSize-1, by + cellSize-1, 0xffffffff, 0xff);
 			}
+		}
+	}
+	
+	private void add3dCube(float xOffset, float yOffset, int color)
+	{
+		int dx = camera.getScreenWidth()/2-(int)cubeSize/2;
+		int dy = camera.getScreenHeight()/2-(int)cubeSize/2;
+		GameObject3d gameObject = new GameObject3d((int)(xOffset-dx), (int)(yOffset-dy), cubeZ, color, cubeSize, camera, triangleRenderer);
+		float finalX = scoreInfoX-cameraScreenWidth/2; 
+		float finalY = scoreInfoY-cameraScreenHeight/2;
+		
+		float middleX = gameObject.getxOffset() + (finalX - gameObject.getxOffset())/2+randomSign()*((float)Math.random()*10);
+		float middleY = gameObject.getyOffset() + (finalY - gameObject.getyOffset())/2+randomSign()*((float)Math.random()*10);
+		
+		gameObject.getPath().addPosition(new Vector3d(middleX, middleY, gameObject.getZ() - (float)Math.random()*20));
+		gameObject.getPath().addPosition(new Vector3d(finalX, finalY, gameObject.getZ()));
+		
+		gameObject.initPath();
+		
+		gameObjects.add(gameObject);
+	}
+	
+	private void add3dCubeForBlock(Block block)
+	{
+		BlockCell[] cells = block.getCells();
+		for (int i = 0; i < cells.length; i++) {
+			BlockCell cell = cells[i];
+			
+			Assert.judge((block.getX() + cell.x) % 2 == 0, "block position not right, should be even.");
+			Assert.judge((block.getY() + cell.y) % 2 == 0, "block position not right, should be even.");
+			int cellX = (block.getX() + cell.x) / 2;
+			int cellY = (block.getY() + cell.y) / 2;
+			
+			float x = leftMarginWidth+ cellX*cellSize;
+			float y = topMarginHeight+ cellY*cellSize;
+			
+			add3dCube(x, y, block.color);
 		}
 	}
 	
@@ -727,6 +801,7 @@ public class Tetris implements Runnable{
 	private void addRemoveFullLineEffect(List<BlockContainerRow> fullRows)
 	{
 		
+		/*
 		for(int i=0;i < fullRows.size() ;i++)
 		{
 			BlockContainerRow containerRow = fullRows.get(i);
@@ -737,9 +812,9 @@ public class Tetris implements Runnable{
 				BlockContainerCell containerCell = containerRow.getColumn(col);
 				int dx = camera.getScreenWidth()/2-cellSize/2;
 				int dy = camera.getScreenHeight()/2-cellSize/2;
-				GameObject3d gameObject = new GameObject3d(xOffset-dx, yOffset-dy, blockZ, containerCell.getColor(), cellSize, camera, triangleRenderer);
-				float finalX = scoreInfoX-screenSize/2; 
-				float finalY = scoreInfoY-screenSize/2;
+				GameObject3d gameObject = new GameObject3d(xOffset-dx, yOffset-dy, cubeZ, containerCell.getColor(), cellSize, camera, triangleRenderer, null);
+				float finalX = scoreInfoX-cameraScreenSize/2; 
+				float finalY = scoreInfoY-cameraScreenSize/2;
 				
 				float middleX = gameObject.getxOffset() + (finalX - gameObject.getxOffset())/2+randomSign()*((float)Math.random()*10);
 				float middleY = gameObject.getyOffset() + (finalY - gameObject.getyOffset())/2+randomSign()*((float)Math.random()*10);
@@ -754,6 +829,7 @@ public class Tetris implements Runnable{
 			}
 			
 		}
+		*/
 		
 	}
 	

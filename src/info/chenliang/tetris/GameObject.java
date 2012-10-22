@@ -17,8 +17,6 @@ public class GameObject implements Tickable{
 	protected int lifeTime = 500;
 	protected int color;
 	
-	protected SceneObject sceneObject;
-	
 	public GameObject()
 	{
 		
