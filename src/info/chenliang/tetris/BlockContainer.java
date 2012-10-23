@@ -58,7 +58,7 @@ public class BlockContainer {
 				if(containerX >= 0 && containerX < numCols)
 				{
 					BlockContainerCell containerCell = containerRow.getColumn(containerX);
-					if(containerCell.getStatus() == BlockContainerCellStatus.OCCUPIED){
+					if(containerCell.status == BlockContainerCellStatus.OCCUPIED){
 						return true;
 					}	
 				}

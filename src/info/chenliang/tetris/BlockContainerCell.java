@@ -2,8 +2,8 @@ package info.chenliang.tetris;
 
 
 public class BlockContainerCell{
-	private int color;
-	private BlockContainerCellStatus status;
+	public int color;
+	public BlockContainerCellStatus status;
 	
 	public BlockContainerCell(int color, BlockContainerCellStatus status) {
 		super();
@@ -17,19 +17,4 @@ public class BlockContainerCell{
 		status = cell.status;
 	}
 
-	public int getColor() {
-		return color;
-	}
-
-	public void setColor(int color) {
-		this.color = color;
-	}
-
-	public BlockContainerCellStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(BlockContainerCellStatus status) {
-		this.status = status;
-	}
 }

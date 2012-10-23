@@ -1,6 +1,5 @@
 package info.chenliang.tetris;
 
-import info.chenliang.ds.Matrix3x3;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
@@ -9,15 +8,12 @@ import info.chenliang.fatrock.Material;
 import info.chenliang.fatrock.SceneObject;
 import info.chenliang.fatrock.Triangle;
 import info.chenliang.fatrock.Vertex3d;
-import info.chenliang.fatrock.trianglerenderers.TriangleRenderer;
+import info.chenliang.fatrock.trianglerenderers.TriangleRendererConstant;
 
 public class GameObject3d extends GameObject{
 	protected float z;
 	protected Camera camera;
-	protected TriangleRenderer triangleRenderer;
-	//protected Vertex3d[] points, transformedPoints;
-	
-	//protected List<Triangle> triangles;
+	protected TriangleRendererConstant triangleRendererConstant;
 	private float size;
 	private int xOffset, yOffset;
 	private GameObject3dPath path;
@@ -26,8 +22,8 @@ public class GameObject3d extends GameObject{
 	private float zStep;
 	private Vector3d colorVector;
 	protected SceneObject sceneObject;
-	private Vector3d n = new Vector3d(1,1,1);	
-	public GameObject3d(int xOffset, int yOffset, float z, int color, float size, Camera camera, TriangleRenderer triangleRenderer)
+	private Vector3d n = new Vector3d(0,1,0);	
+	public GameObject3d(int xOffset, int yOffset, float z, int color, float size, Camera camera, TriangleRendererConstant triangleRendererConstant)
 	{
 		this.x = 0;
 		this.y = 0;
@@ -37,9 +33,9 @@ public class GameObject3d extends GameObject{
 		this.color = color;
 		this.size = size;
 		this.camera = camera;
-		this.triangleRenderer = triangleRenderer;
+		this.triangleRendererConstant = triangleRendererConstant;
 		
-		lifeTime = 8000;
+		lifeTime = 20000;
 		
 		path = new GameObject3dPath();
 		colorVector = new Vector3d((color&0xff0000)>>16, (color&0xff00)>>8, color&0xff);
@@ -79,14 +75,8 @@ public class GameObject3d extends GameObject{
 	public void tick(int timeElapsed) {
 		lifeTime -= timeElapsed;
 
-		xOffset += xOffsetStep*timeElapsed;
-		yOffset += yOffsetStep*timeElapsed;
-
 		camera.setScreenOffsets(xOffset, yOffset);
 		sceneObject.rotate(n, angle);
-		//sceneObject.update();
-		
-		//triangleRenderer.resetZBuffer();
 		
 		for(int i=0; i < sceneObject.mesh.vertices.size(); i ++)
 		{
@@ -107,15 +97,15 @@ public class GameObject3d extends GameObject{
 			v.transformedPosition.copy(v2);
 		}
 		
-		angle += 10;
+		angle += 5;
 		angle %= 360;
 		
 		GameObject3dPathElement element = path.elements.get(pathIndex);
 		element.time -= timeElapsed;
 		if(element.time <= 0)
 		{
-			xOffset = (int)element.position.x;
-			yOffset = (int)element.position.y;
+//			xOffset = (int)element.position.x;
+//			yOffset = (int)element.position.y;
 			z = element.position.z;
 			
 			pathIndex++;
@@ -127,7 +117,8 @@ public class GameObject3d extends GameObject{
 	int ct = 0;
 	public void draw(GameCanvas canvas) 
 	{
-		triangleRenderer.resetZBuffer();
+		triangleRendererConstant.resetZBuffer();
+		triangleRendererConstant.constantColor = color;
 		for (int i = 0; i < sceneObject.mesh.triangles.size(); i++) 
 		{
 			Triangle triangle = sceneObject.mesh.triangles.get(i);
@@ -135,7 +126,7 @@ public class GameObject3d extends GameObject{
 			Vertex3d v2 = triangle.mesh.vertices.get(triangle.v2);
 			Vertex3d v3 = triangle.mesh.vertices.get(triangle.v3);
 			
-			triangleRenderer.fillTriangle(v1, v2, v3);
+			triangleRendererConstant.fillTriangle(v1, v2, v3);
 		}
 	}
 	

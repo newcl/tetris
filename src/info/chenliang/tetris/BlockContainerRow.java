@@ -31,13 +31,13 @@ public class BlockContainerRow {
 	
 	public void fixColumn(int col, int color)
 	{
-		getColumn(col).setStatus(BlockContainerCellStatus.OCCUPIED);
-		getColumn(col).setColor(color);
+		getColumn(col).status = BlockContainerCellStatus.OCCUPIED;
+		getColumn(col).color = color;
 		
 		boolean emptyDetected = false;
 		for(int i=0; i<cells.length; i++)
 		{
-			if(cells[i].getStatus() == BlockContainerCellStatus.EMPTY)
+			if(cells[i].status == BlockContainerCellStatus.EMPTY)
 			{
 				emptyDetected = true;
 				break;
@@ -56,7 +56,7 @@ public class BlockContainerRow {
 	{
 		for(int i=0; i<cells.length; i++)
 		{
-			cells[i].setStatus(BlockContainerCellStatus.EMPTY);
+			cells[i].status = BlockContainerCellStatus.EMPTY;
 		}
 		
 		isFull = false;

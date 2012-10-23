@@ -1,6 +1,6 @@
 package info.chenliang.tetris;
 
-enum BlockContainerCellStatus{
+public enum BlockContainerCellStatus{
 	OCCUPIED,
 	EMPTY
 }

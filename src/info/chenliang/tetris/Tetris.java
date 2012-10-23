@@ -6,7 +6,6 @@ import info.chenliang.fatrock.Camera;
 import info.chenliang.fatrock.DynamicZBuffer;
 import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.fatrock.ZBufferComparerGreaterThan;
-import info.chenliang.fatrock.trianglerenderers.TriangleRenderer;
 import info.chenliang.fatrock.trianglerenderers.TriangleRendererConstant;
 import info.chenliang.tetris.sound.SoundManager;
 
@@ -82,14 +81,15 @@ public class Tetris implements Runnable{
 	
 	private SoundManager soundManager;
 	private Camera camera;
-	private TriangleRenderer triangleRenderer;
+	private TriangleRendererConstant triangleRendererConstant;
 	private float near, far;
 	private float viewAngle;
 	private float cubeZ;
 	private float scoreInfoX, scoreInfoY;
-	//private int cameraScreenSize;
+
 	private int cameraScreenWidth, cameraScreenHeight;
 	private int cubeSize;
+	private int count;
 	
 	public Tetris(GameCanvas gameCanvas)
 	{
@@ -178,11 +178,12 @@ public class Tetris implements Runnable{
 		
 		cameraScreenWidth = 2 * cubeSize;
 		cameraScreenHeight = 2 * cubeSize;
-		//TODO
-		//cubeZ = ?
+
+		cubeZ = cameraScreenHeight*d/2 + cubeSize/2; 
 		
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, cameraScreenWidth, cameraScreenHeight, 0, 0);
-		triangleRenderer = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(cameraScreenWidth, cameraScreenHeight, new ZBufferComparerGreaterThan()), true);		
+//		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(cameraScreenWidth, cameraScreenHeight, new ZBufferComparerGreaterThan()), true, 0xffffffff);
+		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight(), new ZBufferComparerGreaterThan()), true, 0xffffffff);
 	}
 	
 	public void run() {
@@ -266,7 +267,12 @@ public class Tetris implements Runnable{
 				boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
 				if(testDown){
 					if(blockContainer.canMoveDown(currentBlock)){
-						add3dCubeForBlock(currentBlock);
+//						if(count-- <= 0)
+//						{
+//							add3dCubeForBlock(currentBlock);	
+//							count = 30;
+//						}
+						
 						currentBlock.translate(0, 2);
 					}else{
 						fixCurrentBlock();
@@ -362,8 +368,8 @@ public class Tetris implements Runnable{
 				BlockContainerRow containerRow = blockContainer.getRow(row);
 				for(int col=0; col < blockContainer.getNumCols(); col++){
 					BlockContainerCell cell = containerRow.getColumn(col);
-					if(cell.getStatus() == BlockContainerCellStatus.OCCUPIED){
-						drawBlockCell(col, row, cell.getColor(), 0, 0,255,true);
+					if(cell.status == BlockContainerCellStatus.OCCUPIED){
+						drawBlockCell(col, row, cell.color,0,0,255,true);
 					}
 				}
 			}
@@ -609,7 +615,8 @@ public class Tetris implements Runnable{
 	{
 		int dx = camera.getScreenWidth()/2-(int)cubeSize/2;
 		int dy = camera.getScreenHeight()/2-(int)cubeSize/2;
-		GameObject3d gameObject = new GameObject3d((int)(xOffset-dx), (int)(yOffset-dy), cubeZ, color, cubeSize, camera, triangleRenderer);
+		//GameObject3d gameObject = new GameObject3d((int)(xOffset-dx), (int)(yOffset-dy), cubeZ, color, cubeSize, camera, triangleRenderer);
+		GameObject3d gameObject = new GameObject3d((int)(xOffset-dx), (int)(yOffset-dy), cubeZ, color, cubeSize, camera, triangleRendererConstant);
 		float finalX = scoreInfoX-cameraScreenWidth/2; 
 		float finalY = scoreInfoY-cameraScreenHeight/2;
 		
@@ -803,8 +810,6 @@ public class Tetris implements Runnable{
 	
 	private void addRemoveFullLineEffect(List<BlockContainerRow> fullRows)
 	{
-		
-		/*
 		for(int i=0;i < fullRows.size() ;i++)
 		{
 			BlockContainerRow containerRow = fullRows.get(i);
@@ -813,27 +818,12 @@ public class Tetris implements Runnable{
 			for(int col=0; col < blockContainer.getNumCols(); col++)
 			{
 				BlockContainerCell containerCell = containerRow.getColumn(col);
-				int dx = camera.getScreenWidth()/2-cellSize/2;
-				int dy = camera.getScreenHeight()/2-cellSize/2;
-				GameObject3d gameObject = new GameObject3d(xOffset-dx, yOffset-dy, cubeZ, containerCell.getColor(), cellSize, camera, triangleRenderer, null);
-				float finalX = scoreInfoX-cameraScreenSize/2; 
-				float finalY = scoreInfoY-cameraScreenSize/2;
 				
-				float middleX = gameObject.getxOffset() + (finalX - gameObject.getxOffset())/2+randomSign()*((float)Math.random()*10);
-				float middleY = gameObject.getyOffset() + (finalY - gameObject.getyOffset())/2+randomSign()*((float)Math.random()*10);
-				
-				gameObject.getPath().addPosition(new Vector3d(middleX, middleY, gameObject.getZ() - (float)Math.random()*20));
-				gameObject.getPath().addPosition(new Vector3d(finalX, finalY, gameObject.getZ()));
-				
-				gameObject.initPath();
-				gameObjects.add(gameObject);
-				
+				add3dCube(xOffset, yOffset, containerCell.color);
 				xOffset += cellSize;
 			}
 			
-		}
-		*/
-		
+		}	
 	}
 	
 	private void tickGameObjects(int timeElapsed)
