@@ -10,20 +10,24 @@ import info.chenliang.fatrock.Triangle;
 import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.fatrock.trianglerenderers.TriangleRendererConstant;
 
-public class GameObject3d extends GameObject{
-	protected float z;
-	protected Camera camera;
-	protected TriangleRendererConstant triangleRendererConstant;
-	private float size;
-	private int xOffset, yOffset;
-	private GameObject3dPath path;
-	private int pathIndex;
-	private float xOffsetStep, yOffsetStep;
-	private float zStep;
-	private Vector3d colorVector;
-	protected SceneObject sceneObject;
-	private Vector3d n = new Vector3d(0,1,0);	
-	public GameObject3d(int xOffset, int yOffset, float z, int color, float size, Camera camera, TriangleRendererConstant triangleRendererConstant)
+public class FloatingCube extends GameObject{
+	public float z;
+	public Camera camera;
+	public TriangleRendererConstant triangleRendererConstant;
+	public float size;
+	public int xOffset, yOffset;
+	public GameObject3dPath path;
+	public int pathIndex;
+	public float xOffsetStep, yOffsetStep;
+	public float zStep;
+	public Vector3d pathStep;
+	public Vector3d colorVector;
+	public SceneObject sceneObject;
+	public Vector3d n = new Vector3d(0,1,0);	
+	public int angle;
+	public Vector3d position;
+	
+	public FloatingCube(int xOffset, int yOffset, float z, int color, float size, Camera camera, TriangleRendererConstant triangleRendererConstant)
 	{
 		this.x = 0;
 		this.y = 0;
@@ -35,9 +39,10 @@ public class GameObject3d extends GameObject{
 		this.camera = camera;
 		this.triangleRendererConstant = triangleRendererConstant;
 		
-		lifeTime = 20000;
+		position = new Vector3d(xOffset, yOffset, z);
 		
-		path = new GameObject3dPath();
+		lifeTime = 2000;
+		
 		colorVector = new Vector3d((color&0xff0000)>>16, (color&0xff00)>>8, color&0xff);
 		Material material = new Material();
 		material.emission = new Vector3d(0, 0, 0);
@@ -45,6 +50,8 @@ public class GameObject3d extends GameObject{
 		material.ambient = new Vector3d(1.0f, 1.0f, 1.0f);
 		material.specular = new Vector3d(0, 0, 0);
 		sceneObject = new CubeSceneObject(null, new Vector3d(0, 0, z), size, material);
+		
+		path = new GameObject3dPath();
 	}
 	
 	public void initPath()
@@ -64,18 +71,15 @@ public class GameObject3d extends GameObject{
 		if(path != null & pathIndex < path.elements.size())
 		{
 			GameObject3dPathElement element = path.elements.get(pathIndex);
-			xOffsetStep = (element.position.x - xOffset)/ element.time;
-			yOffsetStep = (element.position.y - yOffset)/ element.time;
-			
-			zStep = (element.position.z - z)/element.time;
+			pathStep = element.position.minus(new Vector3d(xOffset, yOffset, z));
+			pathStep.scale(1.0f/element.time);
 		}
 	}
 	
-	int angle;
 	public void tick(int timeElapsed) {
 		lifeTime -= timeElapsed;
 
-		camera.setScreenOffsets(xOffset, yOffset);
+		camera.setScreenOffsets((int)(position.x+0.5), (int)(position.y+0.5));
 		sceneObject.rotate(n, angle);
 		
 		for(int i=0; i < sceneObject.mesh.vertices.size(); i ++)
@@ -99,15 +103,11 @@ public class GameObject3d extends GameObject{
 		
 		angle += 5;
 		angle %= 360;
-		
+		position = position.add(pathStep.scale2(timeElapsed));
 		GameObject3dPathElement element = path.elements.get(pathIndex);
 		element.time -= timeElapsed;
 		if(element.time <= 0)
-		{
-//			xOffset = (int)element.position.x;
-//			yOffset = (int)element.position.y;
-			z = element.position.z;
-			
+		{			
 			pathIndex++;
 			initPathSteps();
 		}

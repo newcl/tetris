@@ -144,37 +144,9 @@ public class Tetris implements Runnable{
 		far = 200;
 		cubeZ = near + (far - near)/2;
 		
-		//REMEMBER we are in camera space right now
-		//for the cube to appear the same size as the block when it's created,
-		//we can use several ways to do this, but let's take a look what factors
-		//that are gonna affect the final size of the 3d cube on the screen
-		//1 z of the cube let's say z = near + (far - near)/2
-		//2 size of the cube let's say size = 10
-		//for y direction, on the projection plane:  
-		//yprojection / (size/2) = d / ((cube z) - size/2)  
-		// we can get: yprojection = (d * size/2) / ((cube z) - size/2)
-		// d = 1 / tan(viewAngle / 2)
-		//for x direction, on the projection plane: almost the same thing
-		//we only need to take the aspect ratio into consideration
-		//xprojection*AR/(size/2) = d / ((cube z) - size/2)
-		//
-		//when projected on screen
-		//for y direction:
-		//yscreen = -yprojection*(screenHeight/2) + (screenHeight/2);
-		//        = screenHeight/2*(1-yprojection)
-		//xscreen = xprojection*(screenWidth/2) + (screenWidth/2)
-		//        = screenWidth/2*(1 + xprojection)
-		//we know we want the yscreen & xscreen to be (cube size / 2)
-		//so we can compute the screen width & screen height using this formula:
-		//
-		//screenHeight = cubeSize * (cubeZ-cubeSize/2) / (cubeZ+(cubeSize/2)*(d-1))
-		//screenWidth = cubeSize * AR * (cubeZ-cubeSize/2) / (AR*cubeZ + (d-AR)*cubeSize/2)
-		//
 		float d = (float)(1 / Math.tan(Math.toRadians(viewAngle/2)));
 		cubeSize = cellSize;
 		float aspectRatio = 1;
-		//cameraScreenWidth = cubeSize * aspectRatio * (cubeZ - cubeSize/2) / (aspectRatio*cubeZ + (d - aspectRatio)*cubeSize/2);
-		//cameraScreenHeight = cubeSize * (cubeZ - cubeSize/2) / (cubeZ + (cubeSize/2)*(d-1));
 		
 		cameraScreenWidth = 2 * cubeSize;
 		cameraScreenHeight = 2 * cubeSize;
@@ -182,8 +154,8 @@ public class Tetris implements Runnable{
 		cubeZ = cameraScreenHeight*d/2 + cubeSize/2; 
 		
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, cameraScreenWidth, cameraScreenHeight, 0, 0);
-//		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(cameraScreenWidth, cameraScreenHeight, new ZBufferComparerGreaterThan()), true, 0xffffffff);
-		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight(), new ZBufferComparerGreaterThan()), true, 0xffffffff);
+		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(cameraScreenWidth, cameraScreenHeight, new ZBufferComparerGreaterThan()), true, 0xffffffff);
+//		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight(), new ZBufferComparerGreaterThan()), true, 0xffffffff);
 	}
 	
 	public void run() {
@@ -615,15 +587,15 @@ public class Tetris implements Runnable{
 	{
 		int dx = camera.getScreenWidth()/2-(int)cubeSize/2;
 		int dy = camera.getScreenHeight()/2-(int)cubeSize/2;
-		//GameObject3d gameObject = new GameObject3d((int)(xOffset-dx), (int)(yOffset-dy), cubeZ, color, cubeSize, camera, triangleRenderer);
-		GameObject3d gameObject = new GameObject3d((int)(xOffset-dx), (int)(yOffset-dy), cubeZ, color, cubeSize, camera, triangleRendererConstant);
-		float finalX = scoreInfoX-cameraScreenWidth/2; 
-		float finalY = scoreInfoY-cameraScreenHeight/2;
+		
+		float finalX = scoreInfoX;//-cubeSize/2; 
+		float finalY = scoreInfoY;//-cubeSize/2;
+		FloatingCube gameObject = new FloatingCube((int)(xOffset-dx), (int)(yOffset-dy), cubeZ, color, cubeSize, camera, triangleRendererConstant);
 		
 		float middleX = gameObject.getxOffset() + (finalX - gameObject.getxOffset())/2+randomSign()*((float)Math.random()*10);
 		float middleY = gameObject.getyOffset() + (finalY - gameObject.getyOffset())/2+randomSign()*((float)Math.random()*10);
 		
-		gameObject.getPath().addPosition(new Vector3d(middleX, middleY, gameObject.getZ() - (float)Math.random()*20));
+		//gameObject.getPath().addPosition(new Vector3d(middleX, middleY, gameObject.getZ() - (float)Math.random()*20));
 		gameObject.getPath().addPosition(new Vector3d(finalX, finalY, gameObject.getZ()));
 		
 		gameObject.initPath();
