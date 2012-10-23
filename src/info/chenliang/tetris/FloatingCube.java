@@ -41,7 +41,7 @@ public class FloatingCube extends GameObject{
 		
 		position = new Vector3d(xOffset, yOffset, z);
 		
-		lifeTime = 2000;
+		lifeTime = 800;
 		
 		colorVector = new Vector3d((color&0xff0000)>>16, (color&0xff00)>>8, color&0xff);
 		Material material = new Material();
@@ -87,6 +87,37 @@ public class FloatingCube extends GameObject{
 			Vertex3d v = sceneObject.mesh.vertices.get(i);
 			v.transformedPosition = sceneObject.transform.transform(v.position); 
 			v.transformedPosition = camera.getWorldToCameraTransform().transform(v.transformedPosition);
+			
+//			Vector4d v2 = camera.getCameraToProjectionTransform().transform(v.transformedPosition);
+//			v2.x /= v2.w;
+//			v2.y /= v2.w;
+//			v2.z /= v2.w;
+//			
+//			float z = v2.w;
+//			v2.w /= v2.w;
+//			
+//			v2 = camera.getProjectionToScreenTransform().transform(v2);
+//			v2.w = z;
+//			
+//			v.transformedPosition.copy(v2);
+		}
+		
+		Vector3d cameraLookAt = new Vector3d(0, 0, 1);
+		for(int i=0; i < sceneObject.mesh.triangles.size(); i ++)
+		{
+			Triangle triangle = sceneObject.mesh.triangles.get(i);
+			triangle.updateNormal();
+			
+			float dot = triangle.normal.dot(cameraLookAt);
+			triangle.culled = dot >= 0;
+		}
+		
+		for(int i=0; i < sceneObject.mesh.vertices.size(); i ++)
+		{
+			Vertex3d v = sceneObject.mesh.vertices.get(i);
+//			v.transformedPosition = sceneObject.transform.transform(v.position); 
+//			v.transformedPosition = camera.getWorldToCameraTransform().transform(v.transformedPosition);
+			
 			Vector4d v2 = camera.getCameraToProjectionTransform().transform(v.transformedPosition);
 			v2.x /= v2.w;
 			v2.y /= v2.w;
@@ -122,6 +153,11 @@ public class FloatingCube extends GameObject{
 		for (int i = 0; i < sceneObject.mesh.triangles.size(); i++) 
 		{
 			Triangle triangle = sceneObject.mesh.triangles.get(i);
+			if(triangle.culled)
+			{
+				continue;
+			}
+			
 			Vertex3d v1 = triangle.mesh.vertices.get(triangle.v1);
 			Vertex3d v2 = triangle.mesh.vertices.get(triangle.v2);
 			Vertex3d v3 = triangle.mesh.vertices.get(triangle.v3);

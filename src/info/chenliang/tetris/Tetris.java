@@ -793,6 +793,7 @@ public class Tetris implements Runnable{
 				
 				add3dCube(xOffset, yOffset, containerCell.color);
 				xOffset += cellSize;
+				break;
 			}
 			
 		}	
