@@ -10,6 +10,9 @@ import info.chenliang.fatrock.Triangle;
 import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.fatrock.trianglerenderers.TriangleRendererConstant;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class FloatingCube extends GameObject{
 	public float z;
 	public Camera camera;
@@ -23,9 +26,47 @@ public class FloatingCube extends GameObject{
 	public Vector3d pathStep;
 	public Vector3d colorVector;
 	public SceneObject sceneObject;
-	public Vector3d n = new Vector3d(0,1,0);	
+	public Vector3d rotateAround;	
 	public int angle;
 	public Vector3d position;
+	public static List<Vector3d> ROTATE_AROUND_VECTORS;
+	
+	static
+	{
+		ROTATE_AROUND_VECTORS = new ArrayList<Vector3d>();
+		ROTATE_AROUND_VECTORS.add(new Vector3d(1, 0, 0));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(-1, 0, 0));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 1, 0));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(0, -1, 0));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 0, 1));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 0, -1));
+		
+		ROTATE_AROUND_VECTORS.add(new Vector3d(1, 1, 0));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(1, -1, 0));
+		
+		ROTATE_AROUND_VECTORS.add(new Vector3d(-1, 1, 0));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(-1, -1, 0));
+		
+		ROTATE_AROUND_VECTORS.add(new Vector3d(1, 0, 1));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(1, 0, -1));
+		
+		ROTATE_AROUND_VECTORS.add(new Vector3d(-1, 0, 1));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(-1, 0, -1));
+		
+		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 1, 1));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 1, -1));
+		
+		ROTATE_AROUND_VECTORS.add(new Vector3d(0, -1, 1));
+		ROTATE_AROUND_VECTORS.add(new Vector3d(0, -1, -1));
+		
+		
+		
+		for(Vector3d v:ROTATE_AROUND_VECTORS)
+		{
+			v.normalize();
+		}
+		
+	}
 	
 	public FloatingCube(int xOffset, int yOffset, float z, int color, float size, Camera camera, TriangleRendererConstant triangleRendererConstant)
 	{
@@ -41,7 +82,7 @@ public class FloatingCube extends GameObject{
 		
 		position = new Vector3d(xOffset, yOffset, z);
 		
-		lifeTime = 800;
+		lifeTime = 10000;
 		
 		colorVector = new Vector3d((color&0xff0000)>>16, (color&0xff00)>>8, color&0xff);
 		Material material = new Material();
@@ -52,6 +93,8 @@ public class FloatingCube extends GameObject{
 		sceneObject = new CubeSceneObject(null, new Vector3d(0, 0, z), size, material);
 		
 		path = new GameObject3dPath();
+		rotateAround = ROTATE_AROUND_VECTORS.get((int)(Math.random()*ROTATE_AROUND_VECTORS.size()));
+		rotateAround = ROTATE_AROUND_VECTORS.get(4);
 	}
 	
 	public void initPath()
@@ -80,7 +123,7 @@ public class FloatingCube extends GameObject{
 		lifeTime -= timeElapsed;
 
 		camera.setScreenOffsets((int)(position.x+0.5), (int)(position.y+0.5));
-		sceneObject.rotate(n, angle);
+		sceneObject.rotate(rotateAround, angle);
 		
 		for(int i=0; i < sceneObject.mesh.vertices.size(); i ++)
 		{

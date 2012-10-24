@@ -152,7 +152,7 @@ public class Tetris implements Runnable{
 		cameraScreenHeight = 2 * cubeSize;
 
 		cubeZ = cameraScreenHeight*d/2 + cubeSize/2; 
-		
+		cubeZ -= 15;
 		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, cameraScreenWidth, cameraScreenHeight, 0, 0);
 		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(cameraScreenWidth, cameraScreenHeight, new ZBufferComparerGreaterThan()), true, 0xffffffff);
 //		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight(), new ZBufferComparerGreaterThan()), true, 0xffffffff);
@@ -239,11 +239,11 @@ public class Tetris implements Runnable{
 				boolean testDown = (currentAction != BlockControlAction.INSTANT_DOWN) &&  (inputDown || testBlockDownTime >= testBlockDownInterval);
 				if(testDown){
 					if(blockContainer.canMoveDown(currentBlock)){
-//						if(count-- <= 0)
-//						{
-//							add3dCubeForBlock(currentBlock);	
-//							count = 30;
-//						}
+						if(count-- <= 0)
+						{
+							add3dCubeForBlock(currentBlock);	
+							count = 10;
+						}
 						
 						currentBlock.translate(0, 2);
 					}else{
@@ -618,6 +618,7 @@ public class Tetris implements Runnable{
 			float y = topMarginHeight+ cellY*cellSize;
 			
 			add3dCube(x, y, block.color);
+			break;
 		}
 	}
 	
