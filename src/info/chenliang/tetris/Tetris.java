@@ -241,8 +241,8 @@ public class Tetris implements Runnable{
 					if(blockContainer.canMoveDown(currentBlock)){
 						if(count-- <= 0)
 						{
-							add3dCubeForBlock(currentBlock);	
-							count = 10;
+							//add3dCubeForBlock(currentBlock);	
+							count = 0;
 						}
 						
 						currentBlock.translate(0, 2);
@@ -618,7 +618,7 @@ public class Tetris implements Runnable{
 			float y = topMarginHeight+ cellY*cellSize;
 			
 			add3dCube(x, y, block.color);
-			break;
+//			break;
 		}
 	}
 	
@@ -794,7 +794,7 @@ public class Tetris implements Runnable{
 				
 				add3dCube(xOffset, yOffset, containerCell.color);
 				xOffset += cellSize;
-				break;
+//				break;
 			}
 			
 		}	

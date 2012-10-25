@@ -5,6 +5,7 @@ import info.chenliang.ds.Vector4d;
 import info.chenliang.fatrock.Camera;
 import info.chenliang.fatrock.CubeSceneObject;
 import info.chenliang.fatrock.Material;
+import info.chenliang.fatrock.ProjectionType;
 import info.chenliang.fatrock.SceneObject;
 import info.chenliang.fatrock.Triangle;
 import info.chenliang.fatrock.Vertex3d;
@@ -34,12 +35,12 @@ public class FloatingCube extends GameObject{
 	static
 	{
 		ROTATE_AROUND_VECTORS = new ArrayList<Vector3d>();
-		ROTATE_AROUND_VECTORS.add(new Vector3d(1, 0, 0));
-		ROTATE_AROUND_VECTORS.add(new Vector3d(-1, 0, 0));
-		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 1, 0));
-		ROTATE_AROUND_VECTORS.add(new Vector3d(0, -1, 0));
-		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 0, 1));
-		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 0, -1));
+//		ROTATE_AROUND_VECTORS.add(new Vector3d(1, 0, 0));
+//		ROTATE_AROUND_VECTORS.add(new Vector3d(-1, 0, 0));
+//		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 1, 0));
+//		ROTATE_AROUND_VECTORS.add(new Vector3d(0, -1, 0));
+//		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 0, 1));
+//		ROTATE_AROUND_VECTORS.add(new Vector3d(0, 0, -1));
 		
 		ROTATE_AROUND_VECTORS.add(new Vector3d(1, 1, 0));
 		ROTATE_AROUND_VECTORS.add(new Vector3d(1, -1, 0));
@@ -59,6 +60,17 @@ public class FloatingCube extends GameObject{
 		ROTATE_AROUND_VECTORS.add(new Vector3d(0, -1, 1));
 		ROTATE_AROUND_VECTORS.add(new Vector3d(0, -1, -1));
 		
+		//----------------------------------------------
+		for(int x=-1; x <= 1; x += 2)
+		{
+			for(int y=-1; y <= 1; y += 2)
+			{
+				for(int z=-1; z <= 1; z += 2)
+				{
+					ROTATE_AROUND_VECTORS.add(new Vector3d(x, y, z));			
+				}
+			}
+		}
 		
 		
 		for(Vector3d v:ROTATE_AROUND_VECTORS)
@@ -82,7 +94,7 @@ public class FloatingCube extends GameObject{
 		
 		position = new Vector3d(xOffset, yOffset, z);
 		
-		lifeTime = 10000;
+		lifeTime = 1000;
 		
 		colorVector = new Vector3d((color&0xff0000)>>16, (color&0xff00)>>8, color&0xff);
 		Material material = new Material();
@@ -94,7 +106,7 @@ public class FloatingCube extends GameObject{
 		
 		path = new GameObject3dPath();
 		rotateAround = ROTATE_AROUND_VECTORS.get((int)(Math.random()*ROTATE_AROUND_VECTORS.size()));
-		rotateAround = ROTATE_AROUND_VECTORS.get(4);
+		//rotateAround = ROTATE_AROUND_VECTORS.get(4);
 	}
 	
 	public void initPath()
@@ -161,21 +173,30 @@ public class FloatingCube extends GameObject{
 //			v.transformedPosition = sceneObject.transform.transform(v.position); 
 //			v.transformedPosition = camera.getWorldToCameraTransform().transform(v.transformedPosition);
 			
-			Vector4d v2 = camera.getCameraToProjectionTransform().transform(v.transformedPosition);
-			v2.x /= v2.w;
-			v2.y /= v2.w;
-			v2.z /= v2.w;
-			
-			float z = v2.w;
-			v2.w /= v2.w;
-			
-			v2 = camera.getProjectionToScreenTransform().transform(v2);
-			v2.w = z;
-			
-			v.transformedPosition.copy(v2);
+			if(camera.projectionType == ProjectionType.PERSPECTIVE)
+			{
+				Vector4d v2 = camera.getCameraToProjectionTransform().transform(v.transformedPosition);
+				v2.x /= v2.w;
+				v2.y /= v2.w;
+				v2.z /= v2.w;
+				
+				float z = v2.w;
+				v2.w /= v2.w;
+				
+				v2 = camera.getProjectionToScreenTransform().transform(v2);
+				v2.w = z;
+				
+				v.transformedPosition.copy(v2);				
+			}
+			else if(camera.projectionType == ProjectionType.ORTHOGONALITY)
+			{
+				Vector4d v2 = camera.getCameraToProjectionTransform().transform(v.transformedPosition);
+				v2 = camera.getProjectionToScreenTransform().transform(v2);
+				v.transformedPosition.copy(v2);				
+			}
 		}
 		
-		angle += 5;
+		angle += 30;
 		angle %= 360;
 		position = position.add(pathStep.scale2(timeElapsed));
 		GameObject3dPathElement element = path.elements.get(pathIndex);
