@@ -94,7 +94,7 @@ public class FloatingCube extends GameObject{
 		
 		position = new Vector3d(xOffset, yOffset, z);
 		
-		lifeTime = 1000;
+		lifeTime = 1800;
 		
 		colorVector = new Vector3d((color&0xff0000)>>16, (color&0xff00)>>8, color&0xff);
 		Material material = new Material();
@@ -196,7 +196,7 @@ public class FloatingCube extends GameObject{
 			}
 		}
 		
-		angle += 30;
+		angle += 43;
 		angle %= 360;
 		position = position.add(pathStep.scale2(timeElapsed));
 		GameObject3dPathElement element = path.elements.get(pathIndex);

@@ -40,7 +40,7 @@ public class SoundManager implements OnLoadCompleteListener{
 		Sound sound = getSoundByResId(resId);
 		if(sound != null)
 		{
-//			soundPool.play(sound.getSoundId(), 0.5f, 0.5f, 0, 1, 1);
+			soundPool.play(sound.getSoundId(), 0.5f, 0.5f, 0, 1, 1);
 		}
 	}
 	

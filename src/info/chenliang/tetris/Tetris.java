@@ -788,13 +788,18 @@ public class Tetris implements Runnable{
 			BlockContainerRow containerRow = fullRows.get(i);
 			int xOffset = leftMarginWidth;
 			int yOffset = topMarginHeight + containerRow.getRow()*cellSize;
+			
+			//int floatingCubeCount = 3 + (int)(Math.random() * 4);
 			for(int col=0; col < blockContainer.getNumCols(); col++)
 			{
 				BlockContainerCell containerCell = containerRow.getColumn(col);
 				
-				add3dCube(xOffset, yOffset, containerCell.color);
-				xOffset += cellSize;
-//				break;
+				if(Math.random()*4 < 1.0f)
+				{
+					add3dCube(xOffset, yOffset, containerCell.color);
+				}
+				
+				xOffset += cellSize; 
 			}
 			
 		}	
