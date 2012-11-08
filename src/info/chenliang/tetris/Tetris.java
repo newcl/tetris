@@ -4,6 +4,7 @@ import info.chenliang.debug.Assert;
 import info.chenliang.ds.Vector3d;
 import info.chenliang.fatrock.Camera;
 import info.chenliang.fatrock.DynamicZBuffer;
+import info.chenliang.fatrock.ProjectionType;
 import info.chenliang.fatrock.Vertex3d;
 import info.chenliang.fatrock.ZBufferComparerGreaterThan;
 import info.chenliang.fatrock.trianglerenderers.TriangleRendererConstant;
@@ -153,7 +154,7 @@ public class Tetris implements Runnable{
 
 		cubeZ = cameraScreenHeight*d/2 + cubeSize/2; 
 		cubeZ -= 15;
-		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, cameraScreenWidth, cameraScreenHeight, 0, 0);
+		camera = new Camera(new Vector3d(0, 0, 0), new Vector3d(0, 0, 1), new Vector3d(0, 1, 0), viewAngle, near, far, cameraScreenWidth, cameraScreenHeight, 0, 0, ProjectionType.ORTHOGONALITY);
 		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(cameraScreenWidth, cameraScreenHeight, new ZBufferComparerGreaterThan()), true, 0xffffffff);
 //		triangleRendererConstant = new TriangleRendererConstant(gameCanvas, new DynamicZBuffer(gameCanvas.getCanvasWidth(), gameCanvas.getCanvasHeight(), new ZBufferComparerGreaterThan()), true, 0xffffffff);
 	}
